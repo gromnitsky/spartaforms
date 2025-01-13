@@ -1,0 +1,86 @@
+<!doctype html>
+<title>Class Survey</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  @media (min-width: 601px) {
+    body {
+      width: 600px;
+      margin: 8px auto;
+    }
+  }
+
+  img { width: 100%; }
+
+  input:user-invalid {
+    background: lightsalmon;
+  }
+
+  .cols-fr1fr3 {
+    margin-top: 1em;
+    display: grid;
+    grid: auto-flow / 1fr 3fr;
+    gap: 5px;
+  }
+
+  #knowledge-list {
+    display: flex;
+    width: 100%;
+  }
+
+  #knowledge__slider {
+    /* transform: rotate(-90deg); */
+    /* width: fit-content; */
+  }
+
+  #knowledge-list option {
+    width: 20%;
+    text-wrap: wrap;
+  }
+</style>
+
+<form action="/api/1/post" method="post">
+
+  <div class="cols-fr1fr3">
+    <label for="first_name">First name</label>
+    <input name="first_name" id="first_name"
+           pattern="[a-zA-Z\u00C0-\u01FF'.\-]{2,}"
+           type="search" spellcheck="false" required>
+    <label for="middle_name">Middle</label>
+    <input name="middle_name" id="middle_name">
+    <label for="second_name">Second</label>
+    <input name="second_name" id="second_name"
+           pattern="[a-zA-Z\u00C0-\u01FF'.\-]{2,}"
+           type="search" spellcheck="false" required>
+  </div>
+
+  <div class="cols-fr1fr3">
+    <label for="age">Age</label>
+    <input name="age" id="age" type="number"
+           min="16" style="width: 4em" required>
+  </div>
+
+
+  <div style="margin-top: 1em" id="knowledge">
+    Self-accessed JavaScript knowledge level:
+    <div id="knowledge__slider">
+      <input type="range" name="knowledge" list="knowledge-list"
+             style="width: 100%" min="0" max="4" value="0">
+      <datalist id="knowledge-list">
+        <option value="0" label="Nil"></option>
+        <option value="1" label="Syntax"></option>
+        <option value="2" label="Coding w/ an LLM"
+                style="text-align: center"></option>
+        <option value="3" label="Alright"
+                style="text-align: right"></option>
+        <option value="4" label="I'm Douglas Crockford"
+                style="text-align: right"></option>
+      </datalist>
+    </div>
+  </div>
+
+
+
+  <input type="submit" style="margin-top: 2em">
+
+</form>
