@@ -13,7 +13,7 @@
   img { width: 100%; }
 
   input:user-invalid {
-    background: lightsalmon;
+    border: 2px solid red;
   }
 
   .cols-fr1fr3 {
@@ -21,21 +21,6 @@
     display: grid;
     grid: auto-flow / 1fr 3fr;
     gap: 5px;
-  }
-
-  #knowledge-list {
-    display: flex;
-    width: 100%;
-  }
-
-  #knowledge__slider {
-    /* transform: rotate(-90deg); */
-    /* width: fit-content; */
-  }
-
-  #knowledge-list option {
-    width: 20%;
-    text-wrap: wrap;
   }
 </style>
 
@@ -57,9 +42,8 @@
   <div class="cols-fr1fr3">
     <label for="age">Age</label>
     <input name="age" id="age" type="number"
-           min="16" style="width: 4em" required>
+           min="16" max="99" style="width: 4em" required>
   </div>
-
 
   <div style="margin-top: 1em" id="knowledge">
     Self-accessed JavaScript knowledge level:
@@ -67,19 +51,50 @@
       <input type="range" name="knowledge" list="knowledge-list"
              style="width: 100%" min="0" max="4" value="0">
       <datalist id="knowledge-list">
-        <option value="0" label="Nil"></option>
-        <option value="1" label="Syntax"></option>
-        <option value="2" label="Coding w/ an LLM"
-                style="text-align: center"></option>
-        <option value="3" label="Alright"
-                style="text-align: right"></option>
-        <option value="4" label="I'm Douglas Crockford"
-                style="text-align: right"></option>
+        <option value="0">Nil</option>
+        <option value="1">Syntax</option>
+        <option value="2">Coding with an LLM</option>
+        <option value="3">Très bien</option>
+        <option value="4">I'm Douglas Crockford</option>
       </datalist>
     </div>
+
   </div>
 
+  <!-- rotate <input> and <datalist> -90° -->
+  <style>
+    #knowledge__slider {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 10em;
+      transform: rotate(-90deg);
+      margin-left: 2em;
+    }
 
+    #knowledge__slider input { cursor: pointer; }
+
+    #knowledge-list {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      width: 10rem;
+      writing-mode: vertical-lr;
+    }
+
+    #knowledge-list option {
+      cursor: pointer;
+      padding: 0.5em 0 0.5em 0;
+    }
+
+    #knowledge-list option:hover { background: gold; }
+  </style>
+
+  <script type="module">
+    let input = document.querySelector('#knowledge__slider input')
+    let fn = node => node.onclick = option => input.value = option.target.value
+    document.querySelectorAll('#knowledge-list option').forEach(fn)
+  </script>
 
   <input type="submit" style="margin-top: 2em">
 
