@@ -21,31 +21,44 @@
     display: grid;
     grid: auto-flow / 1fr 3fr;
     gap: 5px;
+    align-items: flex-end;
   }
 </style>
 
 <form action="/api/1/post" method="post">
 
   <div class="cols-fr1fr3">
-    <label for="first_name">First name</label>
+    <label for="first_name">First name:</label>
     <input name="first_name" id="first_name"
            pattern="[a-zA-Z\u00C0-\u01FF'.\-]{2,}"
            type="search" spellcheck="false" required>
-    <label for="middle_name">Middle</label>
+    <label for="middle_name">Middle:</label>
     <input name="middle_name" id="middle_name">
-    <label for="second_name">Second</label>
+    <label for="second_name">Second:</label>
     <input name="second_name" id="second_name"
            pattern="[a-zA-Z\u00C0-\u01FF'.\-]{2,}"
            type="search" spellcheck="false" required>
   </div>
 
+  <!-- ====================================================== -->
+
   <div class="cols-fr1fr3">
-    <label for="age">Age</label>
+    <label for="age">Age:</label>
     <input name="age" id="age" type="number"
            min="16" max="99" style="width: 4em" required>
   </div>
 
-  <div style="margin-top: 1em" id="knowledge">
+  <!-- ====================================================== -->
+
+  <div class="cols-fr1fr3">
+    <label for="years_of_coding">Years of programming computers:</label>
+    <input name="years_of_coding" id="years_of_coding" type="number"
+           min="0" max="99" style="width: 4em; height: fit-content" required>
+  </div>
+
+  <!-- ====================================================== -->
+
+  <div style="margin-top: 1em">
     Self-accessed JavaScript knowledge level:
     <div id="knowledge__slider">
       <input type="range" name="knowledge" list="knowledge-list"
@@ -95,6 +108,83 @@
     let fn = node => node.onclick = option => input.value = option.target.value
     document.querySelectorAll('#knowledge-list option').forEach(fn)
   </script>
+
+  <!-- ====================================================== -->
+
+  <div>
+    <p>Other languages you program in regularly:</p>
+    <div class="checkboxes">
+      <input type="checkbox" id="lang_typescript" name="languages" value="typescript">
+      <label for="lang_typescript">TypeScript</label>
+      <input type="checkbox" id="lang_c" name="languages" value="c/c++">
+      <label for="lang_c">C/C++</label>
+      <input type="checkbox" id="lang_rust" name="languages" value="rust">
+      <label for="lang_rust">Rust</label>
+      <input type="checkbox" id="lang_go" name="languages" value="go">
+      <label for="lang_go">Go</label>
+      <input type="checkbox" id="lang_ruby" name="languages" value="ruby">
+      <label for="lang_ruby">Ruby</label>
+      <input type="checkbox" id="lang_python" name="languages" value="python">
+      <label for="lang_python">Python</label>
+      <input type="checkbox" id="lang_php" name="languages" value="php">
+      <label for="lang_php">PHP</label>
+      <input type="checkbox" id="lang_java" name="languages" value="java">
+      <label for="lang_java">Java</label>
+      <input type="checkbox" id="lang_swift" name="languages" value="swift">
+      <label for="lang_swift">Swift</label>
+      <input type="checkbox" id="lang_bash" name="languages" value="bash">
+      <label for="lang_bash">Bash</label>
+    </div>
+
+    <style>
+      .checkboxes {
+        display: grid;
+        grid-template-columns: repeat(3, 1.5em 1fr);
+      }
+      .checkboxes input {
+        justify-self: left;
+      }
+    </style>
+
+    <div class="cols-fr1fr3" style="margin: 0">
+      <label for="lang_other" style="padding-left: 0.25em">
+        <i>Not listed:</i>
+      </label>
+      <input name="lang_other" id="lang_other" type="search">
+    </div>
+  </div>
+
+  <!-- ====================================================== -->
+
+  <div>
+    <p>Environment:</p>
+    <div class="checkboxes">
+      <input type="radio" id="env_ide" name="env" value="ide" required>
+      <label for="env_ide">IDE</label>
+      <input type="radio" id="env_editor" name="env" value="editor">
+      <label for="env_editor">Emacs/Vim</label>
+      <input type="radio" id="env_ed" name="env" value="ed">
+      <label for="env_ed">ed(1)</label>
+    </div>
+  </div>
+
+  <!-- ====================================================== -->
+
+  <div>
+    <p>OS:</p>
+    <div class="checkboxes">
+      <input type="radio" id="os_linux" name="os" value="linux" required>
+      <label for="os_linux">Linux/xBSD</label>
+      <input type="radio" id="os_macos" name="os" value="macos">
+      <label for="os_macos">macOS</label>
+      <input type="radio" id="os_WSL" name="os" value="WSL">
+      <label for="os_WSL">WSL</label>
+      <input type="radio" id="os_windows" name="os" value="Windows">
+      <label for="os_windows">Windows</label>
+    </div>
+  </div>
+
+  <!-- ====================================================== -->
 
   <input type="submit" style="margin-top: 2em">
 
