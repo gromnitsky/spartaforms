@@ -65,8 +65,8 @@
              style="width: 100%" min="0" max="4" value="0">
       <datalist id="knowledge-list">
         <option value="0">Nil</option>
-        <option value="1">Syntax</option>
-        <option value="2">Coding with an LLM</option>
+        <option value="1">Basic syntax only</option>
+        <option value="2">Can code with an LLM</option>
         <option value="3">Très bien</option>
         <option value="4">I'm Douglas Crockford</option>
       </datalist>
@@ -112,6 +112,31 @@
   <!-- ====================================================== -->
 
   <div>
+    <p>Area of interests:</p>
+    <div class="checkboxes">
+      <input type="checkbox" id="int_front" name="int" value="frontend">
+      <label for="int_front">Frontend</label>
+      <input type="checkbox" id="int_back" name="int" value="backend">
+      <label for="int_back">Backend</label>
+      <input type="checkbox" id="int_other" name="int" value="other">
+      <label for="int_other"
+             title="E.g., microcontrollers.">Other</label>
+    </div>
+  </div>
+
+  <style>
+    .checkboxes {
+      display: grid;
+      grid-template-columns: repeat(3, 1.5em 1fr);
+    }
+    .checkboxes input {
+      justify-self: left;
+    }
+  </style>
+
+  <!-- ====================================================== -->
+
+  <div>
     <p>Other languages you program in regularly:</p>
     <div class="checkboxes">
       <input type="checkbox" id="lang_typescript" name="languages" value="typescript">
@@ -133,24 +158,16 @@
       <input type="checkbox" id="lang_swift" name="languages" value="swift">
       <label for="lang_swift">Swift</label>
       <input type="checkbox" id="lang_bash" name="languages" value="bash">
-      <label for="lang_bash">Bash</label>
+      <label for="lang_bash"
+             title="With awk/sed/&c.">Bash</label>
     </div>
-
-    <style>
-      .checkboxes {
-        display: grid;
-        grid-template-columns: repeat(3, 1.5em 1fr);
-      }
-      .checkboxes input {
-        justify-self: left;
-      }
-    </style>
 
     <div class="cols-fr1fr3" style="margin: 0">
       <label for="lang_other" style="padding-left: 0.25em">
         <i>Not listed:</i>
       </label>
-      <input name="lang_other" id="lang_other" type="search">
+      <input name="lang_other" id="lang_other" type="search" spellcheck="false"
+             placeholder="Don't add mere DSLs like SQL.">
     </div>
   </div>
 
@@ -162,9 +179,11 @@
       <input type="radio" id="env_ide" name="env" value="ide" required>
       <label for="env_ide">IDE</label>
       <input type="radio" id="env_editor" name="env" value="editor">
-      <label for="env_editor">Emacs/Vim</label>
+      <label for="env_editor"
+             title="Or another standalone editor.">Emacs/Vim</label>
       <input type="radio" id="env_ed" name="env" value="ed">
-      <label for="env_ed">ed(1)</label>
+      <label for="env_ed"
+             title="Ed is the standard text editor.">ed(1)</label>
     </div>
   </div>
 
@@ -174,7 +193,7 @@
     <p>OS:</p>
     <div class="checkboxes">
       <input type="radio" id="os_linux" name="os" value="linux" required>
-      <label for="os_linux">Linux/xBSD</label>
+      <label for="os_linux">Linux/*BSD</label>
       <input type="radio" id="os_macos" name="os" value="macos">
       <label for="os_macos">macOS</label>
       <input type="radio" id="os_WSL" name="os" value="WSL">
@@ -182,6 +201,14 @@
       <input type="radio" id="os_windows" name="os" value="Windows">
       <label for="os_windows">Windows</label>
     </div>
+  </div>
+
+  <!-- ====================================================== -->
+
+  <div style="display: flex; flex-direction: column">
+    <p>Survey comment:</p>
+    <textarea maxlength="280" rows="5" style="resize: none"
+      placeholder="Don't write anything if you got out of bed on the wrong side."></textarea>
   </div>
 
   <!-- ====================================================== -->
