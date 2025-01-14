@@ -4,14 +4,15 @@ import crypto from 'crypto'
 import path from 'path'
 
 const SECRET = process.env.SECRET || '12345'
-const EINVAL = mk_err('Argument invalide', 'EINVAL')
+const EINVAL = mk_err('Requête incorrecte', 'EINVAL')
 const EACCES = mk_err('Permission refusée', 'EACCES')
+const EBADR  = mk_err('Échec de la condition préalable', 'EBADR')
 
 function error(writable, err) {
     if (!writable.headersSent) {
-        let codes = { 'ENOENT': 404, 'EACCES': 403, 'EINVAL': 400 }
-        writable.statusCode = codes[err?.code] || 500
-        try { writable.statusMessage = err } catch {/**/}
+        let tbl = { 'EBADR': 412, 'ENOENT': 404, 'EACCES': 403, 'EINVAL': 400 }
+        writable.statusCode = tbl[err?.code] || 500
+        try { writable.statusMessage = err.message } catch {/**/}
     }
     writable.end()
 }
@@ -33,17 +34,17 @@ function cookie_parse(raw) {
     return r
 }
 
-function cookie_validate(raw) {
-    let hash = cookie_parse(raw)
+function cookie_valid(hash) {
     return sha1(SECRET+hash.file) === hash.sha1
 }
 
 function cookie_set(req, res) {
-    if (cookie_validate(req.headers.cookie)) return
+    let cookies = cookie_parse(req.headers.cookie)
+    if (cookie_valid(cookies)) return
 
     let date = new Date().toISOString().split('T')[0].replaceAll('-', '/')
     let uuid = crypto.randomUUID()
-    let file = 'db/' + date + '/' + uuid
+    let file = path.join('db', date, uuid + '.json')
     let sec = 60*60*24*365
     res.setHeader('Set-Cookie', [
         `sha1=${sha1(SECRET+file)}; Max-Age=${sec}`,
@@ -78,11 +79,52 @@ function serve_static(req, res) {
     })
 }
 
+function save(req, res) {
+    let cookies = cookie_parse(req.headers.cookie)
+    if (!cookie_valid(cookies)) return error(res, EBADR)
+    fs.mkdirSync(path.dirname(cookies.file), {recursive: true})
+
+    let sf
+    try { sf = JSON.parse(fs.readFileSync(cookies.file)) } catch (_) { /**/ }
+
+    if (sf?.edits?.total >= 5 || Date.now() - sf?.edits?.last > 60*5*1000)
+        return error(res, EACCES)
+
+    sf = {
+        edits: {
+            total: (sf?.edits?.total || 0) + 1,
+            last: Date.now()
+        }
+    }
+
+    // sf.user = ...
+    fs.writeFileSync(cookies.file, JSON.stringify(sf))
+
+    res.writeHead(301, { Location: '/api/1/posted' }).end()
+}
+
+function save_ok(req, res) {
+    res.setHeader('Content-Type', 'text/html')
+    res.write(`<!doctype html>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<h1>Posted</h1><p><a href="/">Edit</a>
+(available for 5 min after the last edit, 5 edits max total)</p>`)
+    res.end()
+}
+
 let server = http.createServer( (req, res) => {
     console.log(req.url, req.method, cookie_parse(req.headers.cookie))
 
-    if (req.method === 'POST' && /^\/api\/1\/post\/?$/.test(req.url)) {
-        save(req, res)
+    if (req.url.startsWith('/api/1/')) {
+        let endpoint = req.url.slice(7)
+        if (req.method === 'POST' && endpoint === 'post') {
+            save(req, res)
+        } else if (req.method === 'GET' && endpoint === 'posted') {
+            save_ok(req, res)
+        } else {
+            error(res, EINVAL)
+        }
+
     } else if (req.method === 'GET') {
         serve_static(req, res)
     } else {
