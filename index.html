@@ -16,6 +16,10 @@
     border: 2px solid red;
   }
 
+  .invalid {
+    outline: 2px solid red;
+  }
+
   .cols-fr1fr3 {
     margin-top: 1em;
     display: grid;
@@ -28,21 +32,10 @@
 <form action="/api/1/post" method="post">
 
   <div class="cols-fr1fr3">
-    <label for="first_name">First name:</label>
-    <input name="first_name" id="first_name"
+    <label for="name">Name:</label>
+    <input name="name" id="name"
            pattern="[a-zA-Z\u00C0-\u01FF'.\-]{2,}"
            type="search" spellcheck="false" required>
-    <label for="middle_name">Middle:</label>
-    <input name="middle_name" id="middle_name">
-    <label for="second_name">Second:</label>
-    <input name="second_name" id="second_name"
-           pattern="[a-zA-Z\u00C0-\u01FF'.\-]{2,}"
-           type="search" spellcheck="false" required>
-  </div>
-
-  <!-- ====================================================== -->
-
-  <div class="cols-fr1fr3">
     <label for="age">Age:</label>
     <input name="age" id="age" type="number"
            min="16" max="99" style="width: 4em" required>
@@ -111,7 +104,7 @@
 
   <!-- ====================================================== -->
 
-  <div>
+  <div id="interests">
     <p>Area of interests:</p>
     <div class="checkboxes">
       <input type="checkbox" id="int_front" name="int" value="frontend">
@@ -128,7 +121,9 @@
     .checkboxes {
       display: grid;
       grid-template-columns: repeat(3, 1.5em 1fr);
+      align-items: start;
     }
+
     .checkboxes input {
       justify-self: left;
     }
@@ -167,7 +162,7 @@
         <i>Not listed:</i>
       </label>
       <input name="lang_other" id="lang_other" type="search" spellcheck="false"
-             placeholder="Don't add mere DSLs like SQL.">
+             placeholder="Don't add DSLs like SQL.">
     </div>
   </div>
 
@@ -207,8 +202,7 @@
 
   <div style="display: flex; flex-direction: column">
     <p>Survey comment:</p>
-    <textarea maxlength="280" rows="5" style="resize: none"
-      placeholder="Don't write anything if you got out of bed on the wrong side."></textarea>
+    <textarea maxlength="280" rows="5" style="resize: none"></textarea>
   </div>
 
   <!-- ====================================================== -->
@@ -216,3 +210,37 @@
   <input type="submit" style="margin-top: 2em">
 
 </form>
+
+<script type="module">
+  let $$ = document.querySelectorAll.bind(document)
+  let url = new URL(window.location.href)
+  if (url.searchParams.get('debug') === '1') {
+      $$('form *[required]').forEach( node => node.required = false)
+  }
+
+  class Interests {
+      constructor() {
+          this.div = $$('#interests div')[0]
+          this.inputs = [...$$('#interests input')]
+          let click = node => node.onclick = node => {
+              return this.invalid_state(this.valid() ? 'remove' : 'add')
+          }
+          this.inputs.forEach(click)
+      }
+
+      invalid_state(operation) { this.div.classList[operation]('invalid') }
+
+      valid() { return this.inputs.some( node => node.checked) }
+  }
+
+  let form = $$('form')[0]
+  let interests = new Interests()
+
+  form.onsubmit = evt => {
+      if (!interests.valid()) {
+          alert('"Area of interests" is unset')
+          interests.invalid_state('add')
+          return false
+      }
+  }
+</script>
