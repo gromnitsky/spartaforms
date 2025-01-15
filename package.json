@@ -1,1 +1,1 @@
-{"type":"module"}
+{"type":"module","dependencies":{"@cfworker/json-schema":"^4.1.0"}}

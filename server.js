@@ -3,8 +3,15 @@ import fs from 'fs'
 import crypto from 'crypto'
 import path from 'path'
 import querystring from 'querystring'
+import {Validator} from '@cfworker/json-schema'
+
+if (process.argv.length !== 3) {
+    console.error('Usage: server form.schema.json')
+    process.exit(1)
+}
 
 const SECRET = process.env.SECRET || '12345'
+const FORM_SCHEMA = JSON.parse(fs.readFileSync(process.argv[2]))
 const EINVAL = mk_err('Requête incorrecte', 'EINVAL')
 const EACCES = mk_err('Permission refusée', 'EACCES')
 const EBADR  = mk_err('Échec de la condition préalable', 'EBADR')
@@ -103,8 +110,15 @@ function save(req, res) {
     req.on('error', err => error(res, err))
     req.on('data', chunk => chunks.push(chunk))
     req.on('end', () => {
-        let application_x_www_form_urlencoded = chunks.join``
-        sf.user = querystring.decode(application_x_www_form_urlencoded)
+        // parse application/x-www-form-urlencoded
+        sf.user = querystring.decode(chunks.join``)
+        let validator = new Validator(FORM_SCHEMA)
+        let r = validator.validate(sf.user)
+        if (!r.valid) {
+            console.error(r)
+            return error(res, EINVAL)
+        }
+
         try {
             fs.writeFileSync(file, JSON.stringify(sf))
         } catch(err) {

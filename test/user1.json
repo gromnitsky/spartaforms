@@ -1,0 +1,11 @@
+{
+    "name":"Bob",
+    "age":"21",
+    "years_of_coding":"3",
+    "knowledge":"2",
+    "int":["frontend","backend"],
+    "languages":["c/c++","python"],
+    "lang_other":"Lua",
+    "env":"ide",
+    "os":"macos"
+}
