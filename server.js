@@ -2,6 +2,7 @@ import http from 'http'
 import fs from 'fs'
 import crypto from 'crypto'
 import path from 'path'
+import querystring from 'querystring'
 
 const SECRET = process.env.SECRET || '12345'
 const EINVAL = mk_err('Requête incorrecte', 'EINVAL')
@@ -44,7 +45,7 @@ function cookie_set(req, res) {
 
     let date = new Date().toISOString().split('T')[0].replaceAll('-', '/')
     let uuid = crypto.randomUUID()
-    let file = path.join('db', date, uuid + '.json')
+    let file = path.join('db', date, uuid)
     let sec = 60*60*24*365
     res.setHeader('Set-Cookie', [
         `sha1=${sha1(SECRET+file)}; Max-Age=${sec}`,
@@ -84,8 +85,9 @@ function save(req, res) {
     if (!cookie_valid(cookies)) return error(res, EBADR)
     fs.mkdirSync(path.dirname(cookies.file), {recursive: true})
 
+    let file = cookies.file + '.json'
     let sf
-    try { sf = JSON.parse(fs.readFileSync(cookies.file)) } catch (_) { /**/ }
+    try { sf = JSON.parse(fs.readFileSync(file)) } catch (_) { /**/ }
 
     if (sf?.edits?.total >= 5 || Date.now() - sf?.edits?.last > 60*5*1000)
         return error(res, EACCES)
@@ -97,10 +99,19 @@ function save(req, res) {
         }
     }
 
-    // sf.user = ...
-    fs.writeFileSync(cookies.file, JSON.stringify(sf))
-
-    res.writeHead(301, { Location: '/api/1/posted' }).end()
+    let chunks = []
+    req.on('error', err => error(res, err))
+    req.on('data', chunk => chunks.push(chunk))
+    req.on('end', () => {
+        let application_x_www_form_urlencoded = chunks.join``
+        sf.user = querystring.decode(application_x_www_form_urlencoded)
+        try {
+            fs.writeFileSync(file, JSON.stringify(sf))
+        } catch(err) {
+            return error(res, err)
+        }
+        res.writeHead(301, { Location: '/api/1/posted' }).end()
+    })
 }
 
 function save_ok(req, res) {
