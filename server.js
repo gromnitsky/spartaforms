@@ -12,13 +12,15 @@ if (process.argv.length !== 3) {
 
 const SECRET = process.env.SECRET || '12345'
 const FORM_SCHEMA = JSON.parse(fs.readFileSync(process.argv[2]))
-const EINVAL = mk_err('Requête incorrecte', 'EINVAL')
-const EACCES = mk_err('Permission refusée', 'EACCES')
-const EBADR  = mk_err('Échec de la condition préalable', 'EBADR')
+const EINVAL   = mk_err('Requête incorrecte', 'EINVAL')
+const EACCES   = mk_err('Accès interdit', 'EACCES')
+const EBADR    = mk_err('Échec de la condition préalable', 'EBADR')
+const EMSGSIZE = mk_err('Charge utile trop grande', 'EMSGSIZE')
 
 function error(writable, err) {
     if (!writable.headersSent) {
-        let tbl = { 'EBADR': 412, 'ENOENT': 404, 'EACCES': 403, 'EINVAL': 400 }
+        let tbl = { 'EMSGSIZE': 413, 'EBADR': 412,
+                    'ENOENT': 404, 'EACCES': 403, 'EINVAL': 400 }
         writable.statusCode = tbl[err?.code] || 500
         try { writable.statusMessage = err.message } catch {/**/}
     }
@@ -107,11 +109,20 @@ function save(req, res) {
     }
 
     let chunks = []
+    let size = 0
     req.on('error', err => error(res, err))
-    req.on('data', chunk => chunks.push(chunk))
+    req.on('data', chunk => {
+        chunks.push(chunk)
+        size += Buffer.byteLength(chunk, 'utf8')
+        if (size > 5*1024) {
+            error(res, EMSGSIZE)
+            req.destroy()
+        }
+    })
     req.on('end', () => {
         // parse application/x-www-form-urlencoded
         sf.user = querystring.decode(chunks.join``)
+
         let validator = new Validator(FORM_SCHEMA)
         let r = validator.validate(sf.user)
         if (!r.valid) {
