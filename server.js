@@ -26,7 +26,7 @@ function error(writable, err) {
         writable.statusCode = status
         try {
             writable.statusMessage = err.message
-            writable.setHeader('Content-Type', 'text/html;charset=UTF-8')
+            writable.setHeader('Content-Type', 'text/plain;charset=UTF-8')
         } catch {/**/}
     }
     writable.end(`HTTP ${status}: ${err.message}`)
