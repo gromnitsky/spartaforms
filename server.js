@@ -91,6 +91,24 @@ function serve_static(req, res) {
     })
 }
 
+function collect_post_request(req, res, callback) {
+    let chunks = []
+    let size = 0
+    req.on('error', err => error(res, err))
+    req.on('data', chunk => {
+        chunks.push(chunk)
+        size += Buffer.byteLength(chunk)
+        if (size > 5*1024) {
+            error(res, EMSGSIZE)
+            req.destroy()
+        }
+    })
+    req.on('end', () => {
+        // parse application/x-www-form-urlencoded
+        callback(querystring.decode(chunks.join``))
+    })
+}
+
 function save(req, res) {
     let cookies = cookie_parse(req.headers.cookie)
     if (!cookie_valid(cookies)) return error(res, EBADR)
@@ -109,20 +127,8 @@ function save(req, res) {
         }
     }
 
-    let chunks = []
-    let size = 0
-    req.on('error', err => error(res, err))
-    req.on('data', chunk => {
-        chunks.push(chunk)
-        size += Buffer.byteLength(chunk, 'utf8')
-        if (size > 5*1024) {
-            error(res, EMSGSIZE)
-            req.destroy()
-        }
-    })
-    req.on('end', () => {
-        // parse application/x-www-form-urlencoded
-        sf.user = querystring.decode(chunks.join``)
+    collect_post_request(req, res, parsed_data => {
+        sf.user = parsed_data
 
         let validator = new Validator(FORM_SCHEMA)
         let r = validator.validate(sf.user)
@@ -147,8 +153,13 @@ function save_ok(req, res) {
     res.setHeader('Content-Type', 'text/html')
     res.write(`<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<h1>Posted</h1><p><a href="/">Edit</a>
-(available for 5 min after the last edit, 5 edits max total)</p>`)
+<style>
+html { height: 100%; align-content: center; }
+body { margin: 0 auto; width: 20em; border: 1px solid gray; padding: 1em; }
+</style>
+<h1>Submitted</h1>
+<p><a href="/">Edit</a></p>
+<p>(Editing is available within 5 min after the last edit, 5 edits max.)</p>`)
     res.end()
 }
 
