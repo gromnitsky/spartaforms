@@ -46,10 +46,7 @@ function save_user_input(form) {
     localStorage.setItem(key, JSON.stringify(json))
 }
 
-function load_user_input(form) {
-    let key = cookie('schema')
-    if (!key) return console.error('no value for the cookie "schema"')
-    let input = JSON.parse(localStorage.getItem(key))
+function load_user_input(form, input) {
     if (!input) return
 
     Object.keys(input).map( k => {
@@ -74,6 +71,28 @@ function load_user_input(form) {
     })
 }
 
+function local_storage() {
+    let key = cookie('schema')
+    if (!key) return console.error('no value for the cookie "schema"')
+    return JSON.parse(localStorage.getItem(key))
+}
+
+// try to load previous results when running fron db/ directory
+let results
+try {
+    results = await fetch('results.json').then( r => {
+        if (!r.ok) throw new Error(r.statusText)
+        return r.json()
+    })
+} catch (_) { /**/ }
+
 let form = $$('form')[0]
-load_user_input(form)
-form.onsubmit = submit
+
+if (results) { // load survey results
+    load_user_input(form, results?.user)
+    form.querySelector('input[type=submit]').disabled = true
+
+} else { // start a new survey
+    load_user_input(form, local_storage())
+    form.onsubmit = submit
+}

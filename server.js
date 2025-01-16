@@ -19,13 +19,17 @@ const EBADR    = mk_err('Échec de la condition préalable', 'EBADR')
 const EMSGSIZE = mk_err('Charge utile trop grande', 'EMSGSIZE')
 
 function error(writable, err) {
+    let tbl = { 'EMSGSIZE': 413, 'EBADR': 412,
+                'ENOENT': 404, 'EACCES': 403, 'EINVAL': 400 }
+    let status = tbl[err?.code] || 500
     if (!writable.headersSent) {
-        let tbl = { 'EMSGSIZE': 413, 'EBADR': 412,
-                    'ENOENT': 404, 'EACCES': 403, 'EINVAL': 400 }
-        writable.statusCode = tbl[err?.code] || 500
-        try { writable.statusMessage = err.message } catch {/**/}
+        writable.statusCode = status
+        try {
+            writable.statusMessage = err.message
+            writable.setHeader('Content-Type', 'text/html;charset=UTF-8')
+        } catch {/**/}
     }
-    writable.end()
+    writable.end(`HTTP ${status}: ${err.message}`)
 }
 
 function mk_err(msg, code) {
@@ -46,7 +50,7 @@ function cookie_parse(raw) {
 }
 
 function cookie_valid(hash) {
-    return sha1(SECRET+hash.file) === hash.sha1
+    return sha1(SECRET+hash.dir) === hash.sha1
 }
 
 function cookie_set(req, res) {
@@ -56,12 +60,12 @@ function cookie_set(req, res) {
     let date = new Date().toISOString().split('T')[0].replaceAll('-', '/')
     let uuid = crypto.randomUUID()
     let schema = path.basename(FORM_SCHEMA_FILE, '.schema.json')
-    let file = path.join('db', schema, date, uuid)
+    let dir = path.join('db', schema, date, uuid)
     let sec = 60*60*24*365
     res.setHeader('Set-Cookie', [
         `schema=${schema}; Max-Age=${sec}`,
-        `sha1=${sha1(SECRET+file)}; Max-Age=${sec}`,
-        `file=${file}; Max-Age=${sec}`
+        `sha1=${sha1(SECRET+dir)}; Max-Age=${sec}`,
+        `dir=${dir}; Max-Age=${sec}`
     ])
 }
 
@@ -115,7 +119,7 @@ function save(req, res) {
     let cookies = cookie_parse(req.headers.cookie)
     if (!cookie_valid(cookies)) return error(res, EBADR)
 
-    let file = cookies.file + '.json'
+    let file = path.join(cookies.dir, 'results.json')
     let sf
     try { sf = JSON.parse(fs.readFileSync(file)) } catch (_) { /**/ }
 
@@ -140,12 +144,14 @@ function save(req, res) {
         }
 
         try {
-            fs.mkdirSync(path.dirname(file), {recursive: true})
-            fs.writeFileSync(file, JSON.stringify(sf))
-            try {
-                fs.symlinkSync(path.relative(path.dirname(file), 'index.html'),
-                               cookies.file + '.html')
-            } catch (_) { /**/ }
+            fs.mkdirSync(cookies.dir, {recursive: true})
+            fs.writeFileSync(path.join(cookies.dir, 'results.json'),
+                             JSON.stringify(sf))
+            ;['index.html', 'form.js'].forEach( v => {
+                let dest = path.join(cookies.dir, v)
+                fs.rmSync(dest, {force: true})
+                fs.symlinkSync(path.relative(cookies.dir, v), dest)
+            })
         } catch(err) {
             return error(res, err)
         }
