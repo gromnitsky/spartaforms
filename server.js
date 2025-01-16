@@ -11,7 +11,8 @@ if (process.argv.length !== 3) {
 }
 
 const SECRET = process.env.SECRET || '12345'
-const FORM_SCHEMA = JSON.parse(fs.readFileSync(process.argv[2]))
+const FORM_SCHEMA_FILE = process.argv[2]
+const FORM_SCHEMA = JSON.parse(fs.readFileSync(FORM_SCHEMA_FILE))
 const EINVAL   = mk_err('Requête incorrecte', 'EINVAL')
 const EACCES   = mk_err('Accès interdit', 'EACCES')
 const EBADR    = mk_err('Échec de la condition préalable', 'EBADR')
@@ -54,7 +55,8 @@ function cookie_set(req, res) {
 
     let date = new Date().toISOString().split('T')[0].replaceAll('-', '/')
     let uuid = crypto.randomUUID()
-    let file = path.join('db', date, uuid)
+    let file = path.join('db', path.basename(FORM_SCHEMA_FILE, '.schema.json'),
+                         date, uuid)
     let sec = 60*60*24*365
     res.setHeader('Set-Cookie', [
         `sha1=${sha1(SECRET+file)}; Max-Age=${sec}`,
@@ -92,7 +94,6 @@ function serve_static(req, res) {
 function save(req, res) {
     let cookies = cookie_parse(req.headers.cookie)
     if (!cookie_valid(cookies)) return error(res, EBADR)
-    fs.mkdirSync(path.dirname(cookies.file), {recursive: true})
 
     let file = cookies.file + '.json'
     let sf
@@ -131,7 +132,10 @@ function save(req, res) {
         }
 
         try {
+            fs.mkdirSync(path.dirname(file), {recursive: true})
             fs.writeFileSync(file, JSON.stringify(sf))
+            fs.symlinkSync(path.relative(path.dirname(file), 'index.html'),
+                           cookies.file + '.html')
         } catch(err) {
             return error(res, err)
         }
