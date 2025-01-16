@@ -10,8 +10,6 @@
     }
   }
 
-  img { width: 100%; }
-
   input:user-invalid {
     border: 2px solid red;
   }
@@ -34,7 +32,7 @@
   <div class="cols-fr1fr3">
     <label for="name">Name:</label>
     <input name="name" id="name"
-           pattern="[a-zA-Z\u00C0-\u01FF'.\-]{2,}"
+           pattern="[a-zA-Z\u00C0-\u01FF'.\-]{2,}[a-zA-Z\u00C0-\u01FF' .\-]*"
            type="search" spellcheck="false" required>
     <label for="age">Age:</label>
     <input name="age" id="age" type="number"
@@ -64,7 +62,6 @@
         <option value="4">I'm Douglas Crockford</option>
       </datalist>
     </div>
-
   </div>
 
   <!-- rotate <input> and <datalist> -90° -->
@@ -201,7 +198,7 @@
   <!-- ====================================================== -->
 
   <div style="display: flex; flex-direction: column">
-    <p>Survey comment:</p>
+    <p>Your optional comment:</p>
     <textarea name="comment" maxlength="280" rows="5" style="resize: none"></textarea>
   </div>
 
@@ -211,36 +208,4 @@
 
 </form>
 
-<script type="module">
-  let $$ = document.querySelectorAll.bind(document)
-  let url = new URL(window.location.href)
-  if (url.searchParams.get('debug') === '1') {
-      $$('form *[required]').forEach( node => node.required = false)
-  }
-
-  class Interests {
-      constructor() {
-          this.div = $$('#interests div')[0]
-          this.inputs = [...$$('#interests input')]
-          let click = node => node.onclick = node => {
-              return this.invalid_state(this.valid() ? 'remove' : 'add')
-          }
-          this.inputs.forEach(click)
-      }
-
-      invalid_state(operation) { this.div.classList[operation]('invalid') }
-
-      valid() { return this.inputs.some( node => node.checked) }
-  }
-
-  let form = $$('form')[0]
-  let interests = new Interests()
-
-  form.onsubmit = evt => {
-      if (!interests.valid()) {
-          alert('"Area of interests" is unset')
-          interests.invalid_state('add')
-          return false
-      }
-  }
-</script>
+<script type="module" src="form.js"></script>

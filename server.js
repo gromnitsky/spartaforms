@@ -55,10 +55,11 @@ function cookie_set(req, res) {
 
     let date = new Date().toISOString().split('T')[0].replaceAll('-', '/')
     let uuid = crypto.randomUUID()
-    let file = path.join('db', path.basename(FORM_SCHEMA_FILE, '.schema.json'),
-                         date, uuid)
+    let schema = path.basename(FORM_SCHEMA_FILE, '.schema.json')
+    let file = path.join('db', schema, date, uuid)
     let sec = 60*60*24*365
     res.setHeader('Set-Cookie', [
+        `schema=${schema}; Max-Age=${sec}`,
         `sha1=${sha1(SECRET+file)}; Max-Age=${sec}`,
         `file=${file}; Max-Age=${sec}`
     ])
@@ -82,7 +83,8 @@ function serve_static(req, res) {
             res.setHeader('Content-Length', stats.size)
             res.setHeader('Content-Type', {
                 '.html': 'text/html',
-                '.ico': 'image/x-icon'
+                '.ico': 'image/x-icon',
+                '.js': 'application/javascript'
             }[path.extname(file)] || 'application/octet-stream')
             cookie_set(req, res)
         })
@@ -140,8 +142,10 @@ function save(req, res) {
         try {
             fs.mkdirSync(path.dirname(file), {recursive: true})
             fs.writeFileSync(file, JSON.stringify(sf))
-            fs.symlinkSync(path.relative(path.dirname(file), 'index.html'),
-                           cookies.file + '.html')
+            try {
+                fs.symlinkSync(path.relative(path.dirname(file), 'index.html'),
+                               cookies.file + '.html')
+            } catch (_) { /**/ }
         } catch(err) {
             return error(res, err)
         }
@@ -151,7 +155,7 @@ function save(req, res) {
 
 function save_ok(req, res) {
     res.setHeader('Content-Type', 'text/html')
-    res.write(`<!doctype html>
+    res.end(`<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 html { height: 100%; align-content: center; }
@@ -160,7 +164,6 @@ body { margin: 0 auto; width: 20em; border: 1px solid gray; padding: 1em; }
 <h1>Submitted</h1>
 <p><a href="/">Edit</a></p>
 <p>(Editing is available within 5 min after the last edit, 5 edits max.)</p>`)
-    res.end()
 }
 
 let server = http.createServer( (req, res) => {
