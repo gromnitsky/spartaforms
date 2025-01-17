@@ -21,18 +21,14 @@ class Checkboxes {
 
 let interests = new Checkboxes('#interests')
 
-function submit(evt) {
-    evt.preventDefault()
+function submit() {
     save_user_input(this)
 
     if (!interests.valid()) {
         alert('"Area of interests" is unset')
         interests.invalid_state('add')
-        return
+        return false
     }
-
-    this.submit()
-    form.querySelector('fieldset').disabled = true
 }
 
 function cookie(name) {
@@ -75,6 +71,21 @@ function load_user_input(form, input) {
     })
 }
 
+function load_user_meta(form, input) {
+    if (!input) return
+
+    let meta = form.querySelector('.meta')
+    Object.keys(input).map( k => [k, meta.querySelector(`*[data-name=${k}]`)])
+        .forEach( a => {
+            let [key, node] = a
+            if (key === 'last') {
+                node.innerText = new Date(input[key]).toLocaleString("en-GB")
+            } else
+                node.innerText = input[key]
+        })
+    meta.classList.remove('hidden')
+}
+
 function local_storage() {
     let key = cookie('schema')
     if (!key) return console.error('no value for the cookie "schema"')
@@ -94,6 +105,7 @@ let form = $$('form')[0]
 
 if (results) { // load survey results
     load_user_input(form, results?.user)
+    load_user_meta(form, results?.edits)
     form.querySelector('fieldset').disabled = true
 
 } else { // start a new survey

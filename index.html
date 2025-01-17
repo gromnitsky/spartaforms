@@ -31,15 +31,29 @@
     padding: 0;
     margin: 0;
   }
+
+  .hidden { display: none; }
+  .meta span:nth-child(even) { font-family: monospace; }
 </style>
 
 <form action="/api/1/post" method="post"><fieldset>
+
+  <div class="meta hidden cols-fr1fr3">
+    <span>Total edits:</span>
+    <span data-name="total"></span>
+    <span>Last:</span>
+    <span data-name="last"></span>
+    <span>IP:</span>
+    <span data-name="ip"></span>
+    <span>User-agent:</span>
+    <span data-name="user_agent"></span>
+  </div>
 
   <div class="cols-fr1fr3">
     <label for="name">Name:</label>
     <input name="name" id="name"
            pattern="[a-zA-Z\u00C0-\u01FF'.\-]{2,}[a-zA-Z\u00C0-\u01FF' .\-]*"
-           type="search" spellcheck="false" required>
+           type="search" spellcheck="false" maxlength="100" required>
     <label for="age">Age:</label>
     <input name="age" id="age" type="number"
            min="16" max="99" style="width: 4em" required>
@@ -63,10 +77,10 @@
                min="0" max="4" value="0">
       </div>
       <div id="knowledge__desc">
-        <span data-value="4">I'm Douglas Crockford</span>
-        <span data-value="3">Très bien</span>
+        <span data-value="4">I'm Douglas Crockford 🧙‍♂️</span>
+        <span data-value="3"><i>Très bien</i></span>
         <span data-value="2">Can code with an LLM</span>
-        <span data-value="1">Basic syntax only</span>
+        <span data-value="1">Syntax only</span>
         <span data-value="0">Nil</span>
       </div>
       <datalist id="knowledge-list">
@@ -161,8 +175,6 @@
       <label for="lang_ruby">Ruby</label>
       <input type="checkbox" id="lang_python" name="languages" value="python">
       <label for="lang_python">Python</label>
-      <input type="checkbox" id="lang_php" name="languages" value="php">
-      <label for="lang_php">PHP</label>
       <input type="checkbox" id="lang_java" name="languages" value="java">
       <label for="lang_java">Java</label>
       <input type="checkbox" id="lang_swift" name="languages" value="swift">
@@ -172,7 +184,7 @@
              title="With awk/sed/&c.">Bash</label>
     </div>
 
-    <div class="cols-fr1fr3" style="margin: 0">
+    <div class="cols-fr1fr3" style="margin-top: 0.2em">
       <label for="lang_other" style="padding-left: 0.25em">
         <i>Not listed:</i>
       </label>
