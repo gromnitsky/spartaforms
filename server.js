@@ -158,7 +158,7 @@ function save(req, res) {
         } catch(err) {
             return error(res, err)
         }
-        res.writeHead(301, { Location: '/api/1/posted' }).end()
+        res.writeHead(303, { Location: '/api/1/posted' }).end()
     })
 }
 
