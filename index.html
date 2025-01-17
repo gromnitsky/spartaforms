@@ -49,54 +49,62 @@
 
   <!-- ====================================================== -->
 
-  <div style="margin-top: 1em">
-    Self-accessed JavaScript knowledge level:
+  <div>
+    <p>Self-accessed JavaScript knowledge level:</p>
     <div id="knowledge__slider">
-      <input type="range" name="knowledge" list="knowledge-list"
-             style="width: 100%" min="0" max="4" value="0">
+      <div id="knowledge__input">
+        <input type="range" name="knowledge" list="knowledge-list"
+               min="0" max="4" value="0">
+      </div>
+      <div id="knowledge__desc">
+        <span data-value="4">I'm Douglas Crockford</span>
+        <span data-value="3">Très bien</span>
+        <span data-value="2">Can code with an LLM</span>
+        <span data-value="1">Basic syntax only</span>
+        <span data-value="0">Nil</span>
+      </div>
       <datalist id="knowledge-list">
-        <option value="0">Nil</option>
-        <option value="1">Basic syntax only</option>
-        <option value="2">Can code with an LLM</option>
-        <option value="3">Très bien</option>
-        <option value="4">I'm Douglas Crockford</option>
+        <option value="0"></option>
+        <option value="1"></option>
+        <option value="2"></option>
+        <option value="3"></option>
+        <option value="4"></option>
       </datalist>
     </div>
   </div>
 
-  <!-- rotate <input> and <datalist> -90° -->
   <style>
     #knowledge__slider {
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      width: 10em;
-      transform: rotate(-90deg);
-      margin-left: 2em;
+      height: 8rem;
     }
 
-    #knowledge__slider input { cursor: pointer; }
+    #knowledge__input { width: 2rem; }
+    #knowledge__input input {
+      transform: rotate(-90deg);
+      transform-origin: 4rem 4rem;
+      cursor: pointer;
+      margin: 0;
+      width: 8rem;
+    }
 
-    #knowledge-list {
+    #knowledge__desc {
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      width: 10rem;
-      writing-mode: vertical-lr;
+      height: 8rem;
     }
-
-    #knowledge-list option {
+    #knowledge__desc span {
       cursor: pointer;
-      padding: 0.5em 0 0.5em 0;
+      padding: 0 8px;
     }
-
-    #knowledge-list option:hover { background: gold; }
+    #knowledge__desc span:hover { background: gold; }
   </style>
 
   <script type="module">
     let input = document.querySelector('#knowledge__slider input')
-    let fn = node => node.onclick = option => input.value = option.target.value
-    document.querySelectorAll('#knowledge-list option').forEach(fn)
+    let fn = node => node.onclick = span => input.value = span.target.dataset.value
+    document.querySelectorAll('#knowledge__desc span').forEach(fn)
   </script>
 
   <!-- ====================================================== -->
