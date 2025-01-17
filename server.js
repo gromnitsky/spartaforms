@@ -51,6 +51,7 @@ function cookie_parse(raw) {
 
 function cookie_valid(hash) {
     return sha1(SECRET+hash.dir) === hash.sha1
+        && hash.schema === path.basename(FORM_SCHEMA_FILE, '.schema.json')
 }
 
 function cookie_set(req, res) {
@@ -129,7 +130,9 @@ function save(req, res) {
     sf = {
         edits: {
             total: (sf?.edits?.total || 0) + 1,
-            last: Date.now()
+            last: Date.now(),
+            user_agent: req.headers['user-agent'],
+            ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress
         }
     }
 
@@ -165,7 +168,7 @@ function save_ok(req, res) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 html { height: 100%; align-content: center; }
-body { margin: 0 auto; width: 20em; border: 1px solid gray; padding: 1em; }
+body { margin: 0 auto; width: 15em; border: 1px solid gray; padding: 0.5em; }
 </style>
 <h1>Submitted</h1>
 <p><a href="/">Edit</a></p>
