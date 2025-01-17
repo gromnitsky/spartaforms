@@ -21,14 +21,18 @@ class Checkboxes {
 
 let interests = new Checkboxes('#interests')
 
-function submit() {
+function submit(evt) {
+    evt.preventDefault()
     save_user_input(this)
 
     if (!interests.valid()) {
         alert('"Area of interests" is unset')
         interests.invalid_state('add')
-        return false
+        return
     }
+
+    this.submit()
+    form.querySelector('fieldset').disabled = true
 }
 
 function cookie(name) {
@@ -90,7 +94,7 @@ let form = $$('form')[0]
 
 if (results) { // load survey results
     load_user_input(form, results?.user)
-    form.querySelector('input[type=submit]').disabled = true
+    form.querySelector('fieldset').disabled = true
 
 } else { // start a new survey
     load_user_input(form, local_storage())
