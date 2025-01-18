@@ -1,1 +1,7 @@
-{"type":"module","dependencies":{"@cfworker/json-schema":"^4.1.0"}}
+{
+    "type": "module",
+    "dependencies": {
+        "@cfworker/json-schema": "^4.1.0",
+        "cheerio": "^1.0.0"
+    }
+}
