@@ -151,14 +151,12 @@ texts.concat(numbers, ranges, textareas).forEach( v => {
 })
 
 /* <input type="checkbox"> */
-let checkboxes = $(nodes).toArray()
-    .filter( v => v.name === 'input' && $(v).attr('type') === 'checkbox')
+let checkboxes = nodes.filter( v => v.name === 'input' && $(v).attr('type') === 'checkbox')
 checkboxes = Object.groupBy(checkboxes, v => $(v).attr('name'))
 checkboxes = Object.keys(checkboxes).map(k => new ECheckboxes(checkboxes[k]))
 
 /* <input type="radio"> */
-let radios = $(nodes).toArray()
-    .filter( v => v.name === 'input' && $(v).attr('type') === 'radio')
+let radios = nodes.filter( v => v.name === 'input' && $(v).attr('type') === 'radio')
 radios = Object.groupBy(radios, v => $(v).attr('name'))
 radios = Object.keys(radios).map( k => new ERadios(radios[k]))
 
