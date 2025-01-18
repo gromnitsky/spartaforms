@@ -2,6 +2,7 @@
 
 import * as cheerio from 'cheerio'
 import * as fs from 'fs'
+import util from 'util'
 
 function getters(o) {
     return Object
@@ -18,7 +19,8 @@ class E {
     }
 
     toJSON() {
-        let r = { type: this.type }
+        let r = {}
+        if (this.type) r.type = this.type
         getters(this).forEach( fn => {
             if (this[fn] != null) r[fn] = this[fn]
         })
@@ -78,14 +80,48 @@ class EInteger extends E {
     get maximum() { return this._maximim }
 }
 
+class ECheckboxes {
+    constructor(nodes) {
+        this.nodes = nodes
+        this.name = $(this.nodes[0]).attr('name')
+        let values = this.nodes.map( v => $(v).attr('value'))
+        this.enums = [...new Set(values)] // make uniq
+    }
+
+    get required() {
+        return this.nodes.some( v => {
+            return $(v).attr('data-required') || $(v).attr('required') != null
+        })
+    }
+
+    toJSON() {
+        return {
+            oneOf: [{
+                type: "array",
+                items: {
+                    type: "string",
+                    enum: this.enums
+                },
+                minItems: 1,
+                maxItems: this.enums.length,
+                uniqueItems: true
+            }, {
+                enum: this.enums
+            }]
+        }
+    }
+}
+
 // modifies 'schema'
 function collect_props(nodes, fn_filter, fn_map, schema) {
-    let elements = $(nodes).filter( (idx, v) => fn_filter(idx, v)).toArray()
+    let elements = $(nodes).filter( (_, v) => fn_filter(v)).toArray()
     elements = elements.map(fn_map)
 
     elements.forEach( v => schema.properties[v.name] = v.toJSON())
     schema.required = schema.required
         .concat(elements.filter( v => v.required).map( v => v.name))
+
+    return elements
 }
 
 function err(...s) {
@@ -107,7 +143,7 @@ let schema = {
 }
 
 /* <input type="text"> */
-collect_props(nodes, (idx, v) => {
+collect_props(nodes, v => {
     return /^text|search$/.test($(v).attr('type')) && v.name === 'input'
 }, v => {
     let el = new EString($(v).attr("name"))
@@ -119,16 +155,37 @@ collect_props(nodes, (idx, v) => {
 }, schema)
 
 /* <input type="number"> */
-collect_props(nodes, (idx, v) => {
+collect_props(nodes, v => {
     return $(v).attr('type') === 'number' && v.name === 'input'
 }, v => {
     let el = new EInteger($(v).attr("name"))
     el.required = $(v).attr("required") != null
-    el.minimum= $(v).attr("min")
-    el.maximum= $(v).attr("max")
+    el.minimum = $(v).attr("min")
+    el.maximum = $(v).attr("max")
     return el
 }, schema)
 
+/* <input type="range"> */
+collect_props(nodes, v => {
+    return $(v).attr('type') === 'range' && v.name === 'input'
+}, v => {
+    let el = new EInteger($(v).attr("name"))
+    el.required = $(v).attr("required") != null
+    el.minimum = $(v).attr("min")
+    el.maximum = $(v).attr("max")
+    return el
+}, schema)
+
+
+/* <input type="checkbox"> */
+let checkboxes = $(nodes).toArray()
+    .filter( v => $(v).attr('type') === 'checkbox')
+checkboxes = Object.groupBy(checkboxes, v => $(v).attr('name'))
+Object.keys(checkboxes).forEach( k => {
+    let group = new ECheckboxes(checkboxes[k])
+    schema.properties[group.name] = group.toJSON()
+    if (group.required) schema.required.push(group.name)
+})
 
 /* fin */
 process.stdout.write(JSON.stringify(schema, null, 2))

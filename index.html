@@ -74,7 +74,7 @@
     <div id="knowledge__slider">
       <div id="knowledge__input">
         <input type="range" name="knowledge" list="knowledge-list"
-               min="0" max="4" value="0">
+               min="0" max="4" value="0" required>
       </div>
       <div id="knowledge__desc">
         <span data-value="4">I'm Douglas Crockford 🧙‍♂️</span>
@@ -136,7 +136,8 @@
   <div id="interests">
     <p>Area of interests:</p>
     <div class="checkboxes">
-      <input type="checkbox" id="int_front" name="int" value="frontend">
+      <input type="checkbox" id="int_front" name="int" value="frontend"
+             data-required="true">
       <label for="int_front">Frontend</label>
       <input type="checkbox" id="int_back" name="int" value="backend">
       <label for="int_back">Backend</label>
