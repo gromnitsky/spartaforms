@@ -103,6 +103,11 @@ class ECheckboxes {
     }
 }
 
+class ERadios extends ECheckboxes {
+    constructor(nodes) { super(nodes) }
+    toJSON() { return { enum: this.enums } }
+}
+
 function err(...s) {
     console.error('mkschema.js error:', ...s)
     process.exit(1)
@@ -145,8 +150,15 @@ texts.concat(numbers, ranges).forEach( v => {
 let checkboxes = $(nodes).toArray()
     .filter( v => $(v).attr('type') === 'checkbox')
 checkboxes = Object.groupBy(checkboxes, v => $(v).attr('name'))
-Object.keys(checkboxes).forEach( k => {
-    let group = new ECheckboxes(checkboxes[k])
+checkboxes = Object.keys(checkboxes).map(k => new ECheckboxes(checkboxes[k]))
+
+/* <input type="radio"> */
+let radios = $(nodes).toArray()
+    .filter( v => $(v).attr('type') === 'radio')
+radios = Object.groupBy(radios, v => $(v).attr('name'))
+radios = Object.keys(radios).map( k => new ERadios(radios[k]))
+
+checkboxes.concat(radios).forEach ( group => {
     schema.properties[group.name] = group.toJSON()
     if (group.required) schema.required.push(group.name)
 })
