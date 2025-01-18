@@ -133,28 +133,32 @@ let texts = nodes.filter( v => {
 
 /* <input type="number"> */
 let numbers = nodes.filter( v => {
-    return $(v).attr('type') === 'number' && v.name === 'input'
+    return v.name === 'input' && $(v).attr('type') === 'number'
 }).map( v => new EInteger(v))
 
 /* <input type="range"> */
 let ranges = nodes.filter( v => {
-    return $(v).attr('type') === 'range' && v.name === 'input'
+    return v.name === 'input' && $(v).attr('type') === 'range'
 }).map( v => new EInteger(v))
 
-texts.concat(numbers, ranges).forEach( v => {
+/* <textarea> */
+let textareas = nodes.filter( v => v.name === 'textarea')
+    .map( v => new EString(v))
+
+texts.concat(numbers, ranges, textareas).forEach( v => {
     schema.properties[v.name] = v.toJSON()
     if (v.required) schema.required.push(v.name)
 })
 
 /* <input type="checkbox"> */
 let checkboxes = $(nodes).toArray()
-    .filter( v => $(v).attr('type') === 'checkbox')
+    .filter( v => v.name === 'input' && $(v).attr('type') === 'checkbox')
 checkboxes = Object.groupBy(checkboxes, v => $(v).attr('name'))
 checkboxes = Object.keys(checkboxes).map(k => new ECheckboxes(checkboxes[k]))
 
 /* <input type="radio"> */
 let radios = $(nodes).toArray()
-    .filter( v => $(v).attr('type') === 'radio')
+    .filter( v => v.name === 'input' && $(v).attr('type') === 'radio')
 radios = Object.groupBy(radios, v => $(v).attr('name'))
 radios = Object.keys(radios).map( k => new ERadios(radios[k]))
 
@@ -162,6 +166,7 @@ checkboxes.concat(radios).forEach ( group => {
     schema.properties[group.name] = group.toJSON()
     if (group.required) schema.required.push(group.name)
 })
+
 
 /* fin */
 process.stdout.write(JSON.stringify(schema, null, 2))
