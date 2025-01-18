@@ -2,7 +2,6 @@
 
 import * as cheerio from 'cheerio'
 import * as fs from 'fs'
-import util from 'util'
 
 function getters(o) {
     return Object
@@ -12,52 +11,48 @@ function getters(o) {
 }
 
 class E {
-    constructor(name, type) {
-        this.name = name
+    constructor(node, type) {
+        this.node = node
         this.type = type
-        this.required = false
+        this.name = $(this.node).attr('name')
     }
 
+    get required() { return $(this.node).attr('required') != null }
+
     toJSON() {
-        let r = {}
-        if (this.type) r.type = this.type
-        getters(this).forEach( fn => {
-            if (this[fn] != null) r[fn] = this[fn]
+        let r = { type: this.type }
+        getters(this).forEach( prop => {
+            if (this[prop] != null) r[prop] = this[prop]
         })
         return r
     }
 }
 
 class EString extends E {
-    constructor(name) {
-        super(name, 'string')
+    constructor(node) {
+        super(node, 'string')
     }
 
-    set pattern(v) {
-        if (!v) return
+    get pattern() {
+        let v = $(this.node).attr('pattern')
+        if (!v) return null
         try {
             new RegExp(v)
         } catch(_) {
             throw new Error(`invalid RE for string "${this.name}": $(v)`)
         }
-        this._pattern = v
+        return v
     }
 
-    set minLength(v) {
-        v = parseInt(v) || 0
-        if (v <= 0) return
-        this._minLength = v
+    get minLength() {
+        let v = parseInt($(this.node).attr('minlength'))
+        return (isNaN(v) || v <= 0) ? null : v
     }
 
-    set maxLength(v) {
-        v = parseInt(v)
-        if (isNaN(v) || v < 0) return
-        this._maxLength = v
+    get maxLength() {
+        let v = parseInt($(this.node).attr('maxlength'))
+        return (isNaN(v) || v < 0) ? null : v
     }
-
-    get pattern() { return this._pattern }
-    get minLength() { return this._minLength }
-    get maxLength() { return this._maxLength }
 }
 
 class EInteger extends E {
@@ -65,19 +60,15 @@ class EInteger extends E {
         super(name, 'integer')
     }
 
-    set minimum(v) {
-        v = parseInt(v) || 0
-        this._minimum = v
+    get minimum() {
+        let v = parseInt($(this.node).attr('min'))
+        return isNaN(v) ? null : v
     }
 
-    set maximum(v) {
-        v = parseInt(v)
-        if (isNaN(v)) return
-        this._maximim = v
+    get maximum() {
+        let v = parseInt($(this.node).attr('max'))
+        return isNaN(v) ? null : v
     }
-
-    get minimum() { return this._minimum }
-    get maximum() { return this._maximim }
 }
 
 class ECheckboxes {
@@ -112,18 +103,6 @@ class ECheckboxes {
     }
 }
 
-// modifies 'schema'
-function collect_props(nodes, fn_filter, fn_map, schema) {
-    let elements = $(nodes).filter( (_, v) => fn_filter(v)).toArray()
-    elements = elements.map(fn_map)
-
-    elements.forEach( v => schema.properties[v.name] = v.toJSON())
-    schema.required = schema.required
-        .concat(elements.filter( v => v.required).map( v => v.name))
-
-    return elements
-}
-
 function err(...s) {
     console.error('mkschema.js error:', ...s)
     process.exit(1)
@@ -135,7 +114,7 @@ let $ = cheerio.loadBuffer(fs.readFileSync(process.argv[2]))
 let form = $(process.argv[3])
 if (form.length > 1) err('> 1 forms match')
 
-let nodes = $(form).find('*[name]')
+let nodes = $(form).find('*[name]').toArray()
 let schema = {
     type: 'object',
     properties: {},
@@ -143,39 +122,24 @@ let schema = {
 }
 
 /* <input type="text"> */
-collect_props(nodes, v => {
+let texts = nodes.filter( v => {
     return /^text|search$/.test($(v).attr('type')) && v.name === 'input'
-}, v => {
-    let el = new EString($(v).attr("name"))
-    el.required = $(v).attr("required") != null
-    el.pattern = $(v).attr("pattern")
-    el.minLength = $(v).attr("minlength")
-    el.maxLength = $(v).attr("maxlength")
-    return el
-}, schema)
+}).map( v => new EString(v))
 
 /* <input type="number"> */
-collect_props(nodes, v => {
+let numbers = nodes.filter( v => {
     return $(v).attr('type') === 'number' && v.name === 'input'
-}, v => {
-    let el = new EInteger($(v).attr("name"))
-    el.required = $(v).attr("required") != null
-    el.minimum = $(v).attr("min")
-    el.maximum = $(v).attr("max")
-    return el
-}, schema)
+}).map( v => new EInteger(v))
 
 /* <input type="range"> */
-collect_props(nodes, v => {
+let ranges = nodes.filter( v => {
     return $(v).attr('type') === 'range' && v.name === 'input'
-}, v => {
-    let el = new EInteger($(v).attr("name"))
-    el.required = $(v).attr("required") != null
-    el.minimum = $(v).attr("min")
-    el.maximum = $(v).attr("max")
-    return el
-}, schema)
+}).map( v => new EInteger(v))
 
+texts.concat(numbers, ranges).forEach( v => {
+    schema.properties[v.name] = v.toJSON()
+    if (v.required) schema.required.push(v.name)
+})
 
 /* <input type="checkbox"> */
 let checkboxes = $(nodes).toArray()
