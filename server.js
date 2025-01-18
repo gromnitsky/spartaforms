@@ -13,6 +13,7 @@ if (process.argv.length !== 3) {
 const SECRET = process.env.SECRET || '12345'
 const FORM_SCHEMA_FILE = process.argv[2]
 const FORM_SCHEMA = JSON.parse(fs.readFileSync(FORM_SCHEMA_FILE))
+const FORM_SCHEMA_NAME = path.basename(FORM_SCHEMA_FILE, '.schema.json')
 const EINVAL   = mk_err('Requête incorrecte', 'EINVAL')
 const EACCES   = mk_err('Accès interdit', 'EACCES')
 const EBADR    = mk_err('Échec de la condition préalable', 'EBADR')
@@ -26,7 +27,7 @@ function error(writable, err) {
         writable.statusCode = status
         try {
             writable.statusMessage = err.message
-            writable.setHeader('Content-Type', 'text/plain;charset=UTF-8')
+            writable.setHeader('Content-Type', 'text/plain; charset=utf-8')
         } catch {/**/}
     }
     writable.end(`HTTP ${status}: ${err.message}`)
@@ -51,7 +52,7 @@ function cookie_parse(raw) {
 
 function cookie_valid(hash) {
     return sha1(SECRET+hash.dir) === hash.sha1
-        && hash.schema === path.basename(FORM_SCHEMA_FILE, '.schema.json')
+        && hash.schema === FORM_SCHEMA_NAME
 }
 
 function cookie_set(req, res) {
@@ -60,11 +61,10 @@ function cookie_set(req, res) {
 
     let date = new Date().toISOString().split('T')[0].replaceAll('-', '/')
     let uuid = crypto.randomUUID()
-    let schema = path.basename(FORM_SCHEMA_FILE, '.schema.json')
-    let dir = path.join('db', schema, date, uuid)
+    let dir = path.join('db', FORM_SCHEMA_NAME, date, uuid)
     let sec = 60*60*24*365
     res.setHeader('Set-Cookie', [
-        `schema=${schema}; Max-Age=${sec}`,
+        `schema=${FORM_SCHEMA_NAME}; Max-Age=${sec}`,
         `sha1=${sha1(SECRET+dir)}; Max-Age=${sec}`,
         `dir=${dir}; Max-Age=${sec}`
     ])
@@ -195,5 +195,8 @@ let server = http.createServer( (req, res) => {
     }
 })
 
-server.listen(process.env.PORT || 3000)
+server.listen({
+    port: process.env.PORT || 3000,
+    host: process.env.HOST || '0.0.0.0'
+})
 console.error(process.pid, process.cwd())
