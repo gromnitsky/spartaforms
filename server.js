@@ -3,7 +3,7 @@ import fs from 'fs'
 import crypto from 'crypto'
 import path from 'path'
 import querystring from 'querystring'
-import {Validator} from '@cfworker/json-schema'
+import Ajv from 'ajv'
 
 if (process.argv.length !== 3) {
     console.error('Usage: server form.schema.json')
@@ -12,12 +12,14 @@ if (process.argv.length !== 3) {
 
 const SECRET = process.env.SECRET || '12345'
 const FORM_SCHEMA_FILE = process.argv[2]
-const FORM_SCHEMA = JSON.parse(fs.readFileSync(FORM_SCHEMA_FILE))
 const FORM_SCHEMA_NAME = path.basename(FORM_SCHEMA_FILE, '.schema.json')
 const EINVAL   = mk_err('Requête incorrecte', 'EINVAL')
 const EACCES   = mk_err('Accès interdit', 'EACCES')
 const EBADR    = mk_err('Échec de la condition préalable', 'EBADR')
 const EMSGSIZE = mk_err('Charge utile trop grande', 'EMSGSIZE')
+
+let ajv = new Ajv({ coerceTypes: true })
+let js_validate = ajv.compile(JSON.parse(fs.readFileSync(FORM_SCHEMA_FILE)))
 
 function error(writable, err) {
     let tbl = { 'EMSGSIZE': 413, 'EBADR': 412,
@@ -139,10 +141,8 @@ function save(req, res) {
     collect_post_request(req, res, parsed_data => {
         sf.user = parsed_data
 
-        let validator = new Validator(FORM_SCHEMA)
-        let r = validator.validate(sf.user)
-        if (!r.valid) {
-            console.error(r)
+        if (!js_validate(sf.user)) {
+            console.error(js_validate.errors)
             return error(res, EINVAL)
         }
 

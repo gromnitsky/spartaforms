@@ -1,7 +1,7 @@
 {
     "type": "module",
     "dependencies": {
-        "@cfworker/json-schema": "^4.1.0",
+        "ajv": "^8.17.1",
         "cheerio": "^1.0.0"
     }
 }

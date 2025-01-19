@@ -123,7 +123,8 @@ let nodes = $(form).find('*[name]').toArray()
 let schema = {
     type: 'object',
     properties: {},
-    required: []
+    required: [],
+    additionalProperties: false,
 }
 
 /* <input type="text"> */

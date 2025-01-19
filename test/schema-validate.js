@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import fs from 'fs'
-import {Validator} from '@cfworker/json-schema'
+import Ajv from 'ajv'
 
 if (process.argv.length !== 4) {
     console.error('Usage: schema-validate.js data.schema.json data.json')
@@ -9,9 +9,10 @@ if (process.argv.length !== 4) {
 }
 
 let json = file => JSON.parse(fs.readFileSync(file))
-let validator = new Validator(json(process.argv[2]))
-let r = validator.validate(json(process.argv[3]))
-if (!r.valid) {
-    console.error(r)
+let ajv = new Ajv({ coerceTypes: true, allErrors: true })
+let js_validate = ajv.compile(json(process.argv[2]))
+
+if (!js_validate(json(process.argv[3]))) {
+    console.error(js_validate.errors)
     process.exit(1)
 }
