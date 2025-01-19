@@ -1,0 +1,26 @@
+<!doctype html>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Posted</title>
+<style>
+  html { height: 100%; align-content: center; }
+  h1 { text-align: center; }
+  body { margin: 0 auto; width: 15em; }
+  .hidden { display: none; }
+  form { display: flex; flex-direction: column; }
+</style>
+
+<h1>Posted</h1>
+
+<form class="hidden" method="GET" action="">
+  <p>Editing is available within 5 min after the last edit, 5 edits max:</p>
+  <input type="submit" value="Edit">
+</form>
+
+<script type="module">
+  let url = new URL(window.location.href)
+  if (url.searchParams.get('from')) {
+      let form = document.querySelector('form')
+      form.action = url.searchParams.get('from')
+      form.classList.remove('hidden')
+  }
+</script>

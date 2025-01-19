@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import http from 'http'
 import fs from 'fs'
 import crypto from 'crypto'
@@ -5,21 +7,28 @@ import path from 'path'
 import querystring from 'querystring'
 import Ajv from 'ajv'
 
-if (process.argv.length !== 3) {
-    console.error('Usage: server form.schema.json')
+if (process.argv.length !== 2+2) {
+    console.error('Usage: server.js public_dir db_dir')
     process.exit(1)
 }
 
-const SECRET = process.env.SECRET || '12345'
-const FORM_SCHEMA_FILE = process.argv[2]
-const FORM_SCHEMA_NAME = path.basename(FORM_SCHEMA_FILE, '.schema.json')
+const PUBLIC_DIR = process.argv[2]
+const DB_DIR     = process.argv[3]
+const SECRET     = process.env.SECRET || '12345'
 const EINVAL   = mk_err('Requête incorrecte', 'EINVAL')
 const EACCES   = mk_err('Accès interdit', 'EACCES')
 const EBADR    = mk_err('Échec de la condition préalable', 'EBADR')
 const EMSGSIZE = mk_err('Charge utile trop grande', 'EMSGSIZE')
 
 let ajv = new Ajv({ coerceTypes: true })
-let js_validate = ajv.compile(JSON.parse(fs.readFileSync(FORM_SCHEMA_FILE)))
+let SCHEMAS = {}
+
+function js_validate(schema, json) {
+    let validate = SCHEMAS[schema] ||= ajv.compile(JSON.parse(fs.readFileSync(schema)))
+    let r = validate(json)
+    if (!r) console.error(validate.errors)
+    return r
+}
 
 function error(writable, err) {
     let tbl = { 'EMSGSIZE': 413, 'EBADR': 412,
@@ -53,33 +62,34 @@ function cookie_parse(raw) {
 }
 
 function cookie_valid(hash) {
-    return sha1(SECRET+hash.dir) === hash.sha1
-        && hash.schema === FORM_SCHEMA_NAME
+    return sha1(SECRET+hash.schema+hash.dir) === hash.sha1
 }
 
-function cookie_set(req, res) {
+function cookie_set(path_obj, req, res) {
     let cookies = cookie_parse(req.headers.cookie)
     if (cookie_valid(cookies)) return
 
     let date = new Date().toISOString().split('T')[0].replaceAll('-', '/')
     let uuid = crypto.randomUUID()
-    let dir = path.join('db', FORM_SCHEMA_NAME, date, uuid)
-    let sec = 60*60*24*365
+    let schema = path.join(DB_DIR, path_obj.pathname, 'index.schema.json')
+    let dir = path.join(DB_DIR, path_obj.pathname, date, uuid)
+    let sec = Math.floor((path_obj.mtimeMs - Date.now()) / 1000)
     res.setHeader('Set-Cookie', [
-        `schema=${FORM_SCHEMA_NAME}; Max-Age=${sec}`,
-        `sha1=${sha1(SECRET+dir)}; Max-Age=${sec}`,
-        `dir=${dir}; Max-Age=${sec}`
+        `schema=${schema}; Max-Age=${sec}; Path=${path_obj.pathname}`,
+        `dir=${dir}; Max-Age=${sec}; Path=${path_obj.pathname}`,
+        `sha1=${sha1(SECRET+schema+dir)}; Max-Age=${sec}; Path=${path_obj.pathname}`,
     ])
 }
 
 function serve_static(req, res) {
     let url = new URL(`http://example.com${req.url}`)
-    let name = url.pathname
-    if (/^\/+$/.test(name)) name = "index.html"
-    let nname = path.normalize(name)
-    if (nname.startsWith('/db/')) return error(res, EACCES)
-    let file = path.join(process.cwd(), nname)
-    file = decodeURI(file)
+    let pathname = path.normalize(decodeURI(url.pathname))
+    if (!path.extname(pathname) && pathname[pathname.length-1] !== '/') {
+        // this means we can't serve files w/o file extension
+        return res.writeHead(301, { Location: `${pathname}/` }).end()
+    }
+    let file = path.join(PUBLIC_DIR, pathname)
+    if (/\/+$/.test(file)) file = path.join(file, 'index.html')
 
     fs.stat(file, (err, stats) => {
         if (!err && !stats.isFile()) return error(res, EINVAL)
@@ -87,13 +97,18 @@ function serve_static(req, res) {
 
         let readable = fs.createReadStream(file)
         readable.once('data', () => {
+            let extname = path.extname(file)
             res.setHeader('Content-Length', stats.size)
             res.setHeader('Content-Type', {
                 '.html': 'text/html',
                 '.ico': 'image/x-icon',
                 '.js': 'application/javascript'
-            }[path.extname(file)] || 'application/octet-stream')
-            cookie_set(req, res)
+            }[extname] || 'application/octet-stream')
+
+            if (extname === '.html') cookie_set({
+                pathname,
+                mtimeMs: stats.mtimeMs
+            }, req, res)
         })
         readable.on('error', err => error(res, err))
         readable.pipe(res)
@@ -141,10 +156,7 @@ function save(req, res) {
     collect_post_request(req, res, parsed_data => {
         sf.user = parsed_data
 
-        if (!js_validate(sf.user)) {
-            console.error(js_validate.errors)
-            return error(res, EINVAL)
-        }
+        if (!js_validate(cookies.schema, sf.user)) return error(res, EINVAL)
 
         try {
             fs.mkdirSync(cookies.dir, {recursive: true})
@@ -158,36 +170,15 @@ function save(req, res) {
         } catch(err) {
             return error(res, err)
         }
-        res.writeHead(303, { Location: '/api/1/posted' }).end()
+        res.writeHead(303, { Location: `/posted.html?from=${req.url}` }).end()
     })
-}
-
-function save_ok(req, res) {
-    res.setHeader('Content-Type', 'text/html')
-    res.end(`<!doctype html>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-html { height: 100%; align-content: center; }
-body { margin: 0 auto; width: 15em; border: 1px solid gray; padding: 0.5em; }
-</style>
-<h1>Submitted</h1>
-<p><a href="/">Edit</a></p>
-<p>(Editing is available within 5 min after the last edit, 5 edits max.)</p>`)
 }
 
 let server = http.createServer( (req, res) => {
     console.log(req.url, req.method, cookie_parse(req.headers.cookie))
 
-    if (req.url.startsWith('/api/1/')) {
-        let endpoint = req.url.slice(7)
-        if (req.method === 'POST' && endpoint === 'post') {
-            save(req, res)
-        } else if (req.method === 'GET' && endpoint === 'posted') {
-            save_ok(req, res)
-        } else {
-            error(res, EINVAL)
-        }
-
+    if (req.method === 'POST') {
+        save(req, res)
     } else if (req.method === 'GET') {
         serve_static(req, res)
     } else {
