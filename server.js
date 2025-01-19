@@ -24,7 +24,11 @@ let ajv = new Ajv({ coerceTypes: true })
 let SCHEMAS = {}
 
 function js_validate(schema, json) {
-    let validate = SCHEMAS[schema] ||= ajv.compile(JSON.parse(fs.readFileSync(schema)))
+    if (SCHEMAS[schema]) return SCHEMAS[schema]
+
+    let s
+    try { s = fs.readFileSync(schema) } catch (_) { return false }
+    let validate = SCHEMAS[schema] = ajv.compile(JSON.parse(s))
     let r = validate(json)
     if (!r) console.error(validate.errors)
     return r
@@ -165,7 +169,9 @@ function save(req, res) {
             ;['index.html', 'form.js'].forEach( v => {
                 let dest = path.join(cookies.dir, v)
                 fs.rmSync(dest, {force: true})
-                fs.symlinkSync(path.relative(cookies.dir, v), dest)
+                let src = cookies.dir.split('/')
+                src = path.join(PUBLIC_DIR, src[1], v)
+                fs.symlinkSync(path.relative(cookies.dir, src), dest)
             })
         } catch(err) {
             return error(res, err)

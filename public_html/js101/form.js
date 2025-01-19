@@ -73,8 +73,9 @@ function load_user_input(form, input) {
 
 function load_user_meta(form, input) {
     if (!input) return
-
     let meta = form.querySelector('.meta')
+    if (!meta) return
+
     Object.keys(input).map( k => [k, meta.querySelector(`*[data-name=${k}]`)])
         .forEach( a => {
             let [key, node] = a

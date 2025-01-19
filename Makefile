@@ -1,6 +1,6 @@
 public := public_html
 db := db
-html := $(shell find $(public) -type f | grep .html$$)
+html := $(shell find $(public) -type f | grep /index.html$$)
 schema := $(patsubst $(public)/%.html, $(db)/%.schema.json, $(html))
 
 cmd := node `pwd`/server.js public_html db
