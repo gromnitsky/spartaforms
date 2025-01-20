@@ -171,13 +171,14 @@ function save(req, res) {
         if (!js_validate(survey, sf.user))
             return error(res, 400, 'Failed payload validation')
 
+        let survey_src_dir = path.join(PUBLIC_DIR, survey)
         try {
             fs.mkdirSync(dir, {recursive: true})
             fs.writeFileSync(file, JSON.stringify(sf))
-            ;['index.html', 'form.js'].forEach( v => {
+            fs.readdirSync(survey_src_dir).forEach( v => {
                 let to = path.join(dir, v)
                 fs.rmSync(to, {force: true})
-                let from = path.resolve(path.join(PUBLIC_DIR, survey, v))
+                let from = path.resolve(path.join(survey_src_dir, v))
                 fs.symlinkSync(from, to)
             })
         } catch(err) {
