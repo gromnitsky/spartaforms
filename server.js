@@ -7,25 +7,16 @@ import path from 'path'
 import querystring from 'querystring'
 import Ajv from 'ajv'
 
-function errx(...s) {
-    console.error('Error:', ...s)
-    process.exit(1)
-}
+function errx(...s) { console.error('Error:', ...s); process.exit(1) }
 
 if (process.argv.length !== 2+2) errx('Usage: server.js public_dir db_dir')
 
-const PUBLIC_DIR = process.argv[2+0]
-const DB_DIR     = process.argv[2+1]
+let SECRET     = process.env.SECRET || errx('env SECRET is unset')
+let PUBLIC_DIR = process.argv[2+0]
+let DB_DIR     = process.argv[2+1]
 
 if (path.resolve(PUBLIC_DIR).startsWith(path.resolve(DB_DIR)))
     errx("db_dir can't be equal to or reside in public_dir")
-
-const SECRET   = process.env.SECRET || errx('env SECRET is unset')
-const EINVAL   = mk_err('Requête incorrecte', 'EINVAL')
-const EACCES   = mk_err('Accès interdit', 'EACCES')
-const EBADR    = mk_err('Échec de la condition préalable', 'EBADR')
-const EMSGSIZE = mk_err('Charge utile trop grande', 'EMSGSIZE')
-const ENAVAIL  = mk_err('Méthode non autorisée', 'ENAVAIL')
 
 let ajv = new Ajv({ coerceTypes: true })
 let SCHEMAS = {}
@@ -43,23 +34,18 @@ function js_validate(survey, json) {
     return r
 }
 
-function error(writable, err) {
-    let tbl = { 'EMSGSIZE': 413, 'EBADR': 412, 'ENAVAIL': 405,
-                'ENOENT': 404, 'EACCES': 403, 'EINVAL': 400 }
-    let status = tbl[err?.code] || 500
+function error(writable, code, err) {
+    let sys = { 'ENOENT': 404, 'EACCES': 403, 'EINVAL': 400 }
+    let status = sys[err.code] || code
+    let msg = err.message || err
     if (!writable.headersSent) {
         writable.statusCode = status
         try {
-            writable.statusMessage = err.message
             writable.setHeader('Content-Type', 'text/plain; charset=utf-8')
+            writable.statusMessage = msg
         } catch {/**/}
     }
-    writable.end(`HTTP ${status}: ${err.message}`)
-}
-
-function mk_err(msg, code) {
-    let err = new Error(msg); err.code = code
-    return err
+    writable.end(`HTTP ${status}: ${err instanceof Error ? err.stack : msg}`)
 }
 
 function sha1(s) { return crypto.createHash('sha1').update(s).digest('hex') }
@@ -86,7 +72,6 @@ function cookie_set(path_obj, req, res) {
     let uuid = crypto.randomUUID()
     let sid = path.join(date, uuid)
     let sec = Math.floor((path_obj.mtimeMs - Date.now()) / 1000)
-    // TODO: check if Path= is unnecessary
     res.setHeader('Set-Cookie', [
         `sid=${sid}; Max-Age=${sec}; Path=${path_obj.pathname}`,
         `signature=${sha1(SECRET+sid)}; Max-Age=${sec}; Path=${path_obj.pathname}`,
@@ -115,9 +100,9 @@ function serve_static(req, res) {
     if (/\/+$/.test(file)) file = path.join(file, 'index.html')
 
     fs.stat(file, (err, stats) => {
-        if (!err && !stats.isFile()) return error(res, EINVAL)
-        if (err) return error(res, err)
-        if (!survey_valid(file, stats)) error(res, EACCES)
+        if (!err && !stats.isFile()) return error(res, 400, 'Irregular file')
+        if (err) return error(res, 404, err)
+        if (!survey_valid(file, stats)) return error(res, 403, 'Expired survey')
 
         let readable = fs.createReadStream(file)
         readable.once('data', () => {
@@ -135,7 +120,7 @@ function serve_static(req, res) {
                 mtimeMs: stats.mtimeMs
             }, req, res)
         })
-        readable.on('error', err => error(res, err))
+        readable.on('error', err => error(res, 500, err))
         readable.pipe(res)
     })
 }
@@ -143,12 +128,12 @@ function serve_static(req, res) {
 function collect_post_request(req, res, callback) {
     let chunks = []
     let size = 0
-    req.on('error', err => error(res, err))
+    req.on('error', err => error(res, 500, err))
     req.on('data', chunk => {
         chunks.push(chunk)
         size += Buffer.byteLength(chunk)
         if (size > 5*1024) {
-            error(res, EMSGSIZE)
+            error(res, 413, 'Payload is too big')
             req.destroy()
         }
     })
@@ -160,7 +145,7 @@ function collect_post_request(req, res, callback) {
 
 function save(req, res) {
     let cookies = cookie_parse(req.headers.cookie)
-    if (!cookie_valid(cookies)) return error(res, EBADR)
+    if (!cookie_valid(cookies)) return error(res, 412, 'Invalid cookies')
 
     let survey = path.basename(url_pathname(req.url))
     let dir = path.join(DB_DIR, survey, cookies.sid)
@@ -169,7 +154,7 @@ function save(req, res) {
     try { sf = JSON.parse(fs.readFileSync(file)) } catch (_) { /**/ }
 
     if (sf?.edits?.total >= 5 || Date.now() - sf?.edits?.last > 60*5*1000)
-        return error(res, EACCES)
+        return error(res, 403, 'Too many edits or expired edit window')
 
     sf = {
         edits: {
@@ -183,7 +168,8 @@ function save(req, res) {
     collect_post_request(req, res, parsed_data => {
         sf.user = parsed_data
 
-        if (!js_validate(survey, sf.user)) return error(res, EINVAL)
+        if (!js_validate(survey, sf.user))
+            return error(res, 400, 'Failed payload validation')
 
         try {
             fs.mkdirSync(dir, {recursive: true})
@@ -195,7 +181,7 @@ function save(req, res) {
                 fs.symlinkSync(from, to)
             })
         } catch(err) {
-            return error(res, err)
+            return error(res, 500, err)
         }
         res.writeHead(303, { Location: `/posted.html?from=${req.url}` }).end()
     })
@@ -209,7 +195,7 @@ let server = http.createServer( (req, res) => {
     } else if (req.method === 'GET') {
         serve_static(req, res)
     } else {
-        error(res, ENAVAIL)
+        error(res, 405, 'Method Not Allowed')
     }
 })
 
