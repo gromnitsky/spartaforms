@@ -7,18 +7,25 @@ import path from 'path'
 import querystring from 'querystring'
 import Ajv from 'ajv'
 
-if (process.argv.length !== 2+2) {
-    console.error('Usage: server.js public_dir db_dir')
+function errx(...s) {
+    console.error('Error:', ...s)
     process.exit(1)
 }
 
-const PUBLIC_DIR = process.argv[2]
-const DB_DIR     = process.argv[3]
-const SECRET     = process.env.SECRET || '12345'
+if (process.argv.length !== 2+2) errx('Usage: server.js public_dir db_dir')
+
+const PUBLIC_DIR = process.argv[2+0]
+const DB_DIR     = process.argv[2+1]
+
+if (path.resolve(PUBLIC_DIR).startsWith(path.resolve(DB_DIR)))
+    errx("db_dir can't be equal to or reside in public_dir")
+
+const SECRET   = process.env.SECRET || errx('env SECRET is unset')
 const EINVAL   = mk_err('Requête incorrecte', 'EINVAL')
 const EACCES   = mk_err('Accès interdit', 'EACCES')
 const EBADR    = mk_err('Échec de la condition préalable', 'EBADR')
 const EMSGSIZE = mk_err('Charge utile trop grande', 'EMSGSIZE')
+const ENAVAIL  = mk_err('Méthode non autorisée', 'ENAVAIL')
 
 let ajv = new Ajv({ coerceTypes: true })
 let SCHEMAS = {}
@@ -27,15 +34,17 @@ function js_validate(schema, json) {
     if (SCHEMAS[schema]) return SCHEMAS[schema]
 
     let s
-    try { s = fs.readFileSync(schema) } catch (_) { return false }
-    let validate = SCHEMAS[schema] = ajv.compile(JSON.parse(s))
-    let r = validate(json)
-    if (!r) console.error(validate.errors)
+    try {
+        s = fs.readFileSync(path.join(DB_DIR, schema))
+        SCHEMAS[schema] = ajv.compile(JSON.parse(s))
+    } catch (_) { return false }
+    let r = SCHEMAS[schema](json)
+    if (!r) console.error(SCHEMAS[schema].errors)
     return r
 }
 
 function error(writable, err) {
-    let tbl = { 'EMSGSIZE': 413, 'EBADR': 412,
+    let tbl = { 'EMSGSIZE': 413, 'EBADR': 412, 'ENAVAIL': 405,
                 'ENOENT': 404, 'EACCES': 403, 'EINVAL': 400 }
     let status = tbl[err?.code] || 500
     if (!writable.headersSent) {
@@ -66,7 +75,7 @@ function cookie_parse(raw) {
 }
 
 function cookie_valid(hash) {
-    return sha1(SECRET+hash.schema+hash.dir) === hash.sha1
+    return sha1(SECRET+DB_DIR+hash.schema+hash.dir) === hash.sha1
 }
 
 function cookie_set(path_obj, req, res) {
@@ -75,13 +84,13 @@ function cookie_set(path_obj, req, res) {
 
     let date = new Date().toISOString().split('T')[0].replaceAll('-', '/')
     let uuid = crypto.randomUUID()
-    let schema = path.join(DB_DIR, path_obj.pathname, 'index.schema.json')
-    let dir = path.join(DB_DIR, path_obj.pathname, date, uuid)
+    let schema = path.join(path_obj.pathname, 'index.schema.json')
+    let dir = path.join(path_obj.pathname, date, uuid)
     let sec = Math.floor((path_obj.mtimeMs - Date.now()) / 1000)
     res.setHeader('Set-Cookie', [
         `schema=${schema}; Max-Age=${sec}; Path=${path_obj.pathname}`,
         `dir=${dir}; Max-Age=${sec}; Path=${path_obj.pathname}`,
-        `sha1=${sha1(SECRET+schema+dir)}; Max-Age=${sec}; Path=${path_obj.pathname}`,
+        `sha1=${sha1(SECRET+DB_DIR+schema+dir)}; Max-Age=${sec}; Path=${path_obj.pathname}`,
     ])
 }
 
@@ -150,7 +159,8 @@ function save(req, res) {
     let cookies = cookie_parse(req.headers.cookie)
     if (!cookie_valid(cookies)) return error(res, EBADR)
 
-    let file = path.join(cookies.dir, 'results.json')
+    let dir = path.join(DB_DIR, cookies.dir)
+    let file = path.join(dir, 'results.json')
     let sf
     try { sf = JSON.parse(fs.readFileSync(file)) } catch (_) { /**/ }
 
@@ -172,14 +182,13 @@ function save(req, res) {
         if (!js_validate(cookies.schema, sf.user)) return error(res, EINVAL)
 
         try {
-            fs.mkdirSync(cookies.dir, {recursive: true})
-            fs.writeFileSync(path.join(cookies.dir, 'results.json'),
-                             JSON.stringify(sf))
+            fs.mkdirSync(dir, {recursive: true})
+            fs.writeFileSync(file, JSON.stringify(sf))
             ;['index.html', 'form.js'].forEach( v => {
-                let dest = path.join(cookies.dir, v)
-                fs.rmSync(dest, {force: true})
-                let src = path.join(PUBLIC_DIR, path.basename(path.dirname(cookies.schema)), v)
-                fs.symlinkSync(path.relative(cookies.dir, src), dest)
+                let to = path.join(dir, v)
+                fs.rmSync(to, {force: true})
+                let from = path.resolve(path.join(PUBLIC_DIR, path.dirname(cookies.schema), v))
+                fs.symlinkSync(from, to)
             })
         } catch(err) {
             return error(res, err)
@@ -189,14 +198,14 @@ function save(req, res) {
 }
 
 let server = http.createServer( (req, res) => {
-    console.log(req.url, req.method, cookie_parse(req.headers.cookie))
+    console.log(req.method, req.url)
 
     if (req.method === 'POST') {
         save(req, res)
     } else if (req.method === 'GET') {
         serve_static(req, res)
     } else {
-        error(res, EINVAL)
+        error(res, ENAVAIL)
     }
 })
 

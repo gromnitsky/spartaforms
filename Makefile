@@ -2,8 +2,9 @@ public := public_html
 db := db
 html := $(shell find $(public)/*/ -type f | grep /index.html$$)
 schema := $(patsubst $(public)/%.html, $(db)/%.schema.json, $(html))
+export SECRET := 12345
 
-cmd := node `pwd`/server.js public_html db
+cmd := node `pwd`/server.js $(public) $(db)
 server: kill $(schema); $(cmd) &
 kill:; -pkill -f "$(cmd)"
 
