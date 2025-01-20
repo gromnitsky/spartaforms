@@ -35,7 +35,7 @@ function local_storage_key() {
     let url = new URL(window.location.href)
     let m = url.pathname.match(/([^/]+)\/+$/)
     if (!m) return null
-    return `survey-${m[1]}`
+    return `SpartaForms ${m[1]}`
 }
 
 function save_user_input(form) {

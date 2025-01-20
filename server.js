@@ -183,7 +183,8 @@ function save(req, res) {
         } catch(err) {
             return error(res, 500, err)
         }
-        res.writeHead(303, { Location: `/posted.html?from=${req.url}` }).end()
+        let from = req.url.replace(/^\/+/, '')
+        res.writeHead(303, { Location: `/posted.html?from=${from}` }).end()
     })
 }
 
