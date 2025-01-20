@@ -85,6 +85,13 @@ function cookie_set(path_obj, req, res) {
     ])
 }
 
+// a survey file MUST have its mtime set in the future
+function survey_valid(file, stats) {
+    if (path.join(PUBLIC_DIR, 'index.html') === file) return true
+    if (path.basename(file) !== 'index.html') return true
+    return stats.mtimeMs > Date.now()
+}
+
 function serve_static(req, res) {
     let url = new URL(`http://example.com${req.url}`)
     let pathname = path.normalize(decodeURI(url.pathname))
@@ -98,6 +105,7 @@ function serve_static(req, res) {
     fs.stat(file, (err, stats) => {
         if (!err && !stats.isFile()) return error(res, EINVAL)
         if (err) return error(res, err)
+        if (!survey_valid(file, stats)) error(res, EACCES)
 
         let readable = fs.createReadStream(file)
         readable.once('data', () => {
@@ -106,7 +114,8 @@ function serve_static(req, res) {
             res.setHeader('Content-Type', {
                 '.html': 'text/html',
                 '.ico': 'image/x-icon',
-                '.js': 'application/javascript'
+                '.js': 'application/javascript',
+                '.svg': 'image/svg+xml',
             }[extname] || 'application/octet-stream')
 
             if (extname === '.html') cookie_set({
@@ -169,8 +178,7 @@ function save(req, res) {
             ;['index.html', 'form.js'].forEach( v => {
                 let dest = path.join(cookies.dir, v)
                 fs.rmSync(dest, {force: true})
-                let src = cookies.dir.split('/')
-                src = path.join(PUBLIC_DIR, src[1], v)
+                let src = path.join(PUBLIC_DIR, path.basename(path.dirname(cookies.schema)), v)
                 fs.symlinkSync(path.relative(cookies.dir, src), dest)
             })
         } catch(err) {
