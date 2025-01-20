@@ -30,16 +30,16 @@ const ENAVAIL  = mk_err('Méthode non autorisée', 'ENAVAIL')
 let ajv = new Ajv({ coerceTypes: true })
 let SCHEMAS = {}
 
-function js_validate(schema, json) {
-    if (SCHEMAS[schema]) return SCHEMAS[schema]
+function js_validate(survey, json) {
+    if (SCHEMAS[survey]) return SCHEMAS[survey]
 
     let s
     try {
-        s = fs.readFileSync(path.join(DB_DIR, schema))
-        SCHEMAS[schema] = ajv.compile(JSON.parse(s))
+        s = fs.readFileSync(path.join(DB_DIR, survey, 'index.schema.json'))
+        SCHEMAS[survey] = ajv.compile(JSON.parse(s))
     } catch (_) { return false }
-    let r = SCHEMAS[schema](json)
-    if (!r) console.error(SCHEMAS[schema].errors)
+    let r = SCHEMAS[survey](json)
+    if (!r) console.error(SCHEMAS[survey].errors)
     return r
 }
 
@@ -75,7 +75,7 @@ function cookie_parse(raw) {
 }
 
 function cookie_valid(hash) {
-    return sha1(SECRET+DB_DIR+hash.schema+hash.dir) === hash.sha1
+    return sha1(SECRET+hash.sid) === hash.signature
 }
 
 function cookie_set(path_obj, req, res) {
@@ -84,13 +84,12 @@ function cookie_set(path_obj, req, res) {
 
     let date = new Date().toISOString().split('T')[0].replaceAll('-', '/')
     let uuid = crypto.randomUUID()
-    let schema = path.join(path_obj.pathname, 'index.schema.json')
-    let dir = path.join(path_obj.pathname, date, uuid)
+    let sid = path.join(date, uuid)
     let sec = Math.floor((path_obj.mtimeMs - Date.now()) / 1000)
+    // TODO: check if Path= is unnecessary
     res.setHeader('Set-Cookie', [
-        `schema=${schema}; Max-Age=${sec}; Path=${path_obj.pathname}`,
-        `dir=${dir}; Max-Age=${sec}; Path=${path_obj.pathname}`,
-        `sha1=${sha1(SECRET+DB_DIR+schema+dir)}; Max-Age=${sec}; Path=${path_obj.pathname}`,
+        `sid=${sid}; Max-Age=${sec}; Path=${path_obj.pathname}`,
+        `signature=${sha1(SECRET+sid)}; Max-Age=${sec}; Path=${path_obj.pathname}`,
     ])
 }
 
@@ -101,9 +100,13 @@ function survey_valid(file, stats) {
     return stats.mtimeMs > Date.now()
 }
 
+function url_pathname(raw_http_url) {
+    let url = new URL(`http://example.com${raw_http_url}`)
+    return path.normalize(decodeURI(url.pathname))
+}
+
 function serve_static(req, res) {
-    let url = new URL(`http://example.com${req.url}`)
-    let pathname = path.normalize(decodeURI(url.pathname))
+    let pathname = url_pathname(req.url)
     if (!path.extname(pathname) && pathname[pathname.length-1] !== '/') {
         // this means we can't serve files w/o file extension
         return res.writeHead(301, { Location: `${pathname}/` }).end()
@@ -159,7 +162,8 @@ function save(req, res) {
     let cookies = cookie_parse(req.headers.cookie)
     if (!cookie_valid(cookies)) return error(res, EBADR)
 
-    let dir = path.join(DB_DIR, cookies.dir)
+    let survey = path.basename(url_pathname(req.url))
+    let dir = path.join(DB_DIR, survey, cookies.sid)
     let file = path.join(dir, 'results.json')
     let sf
     try { sf = JSON.parse(fs.readFileSync(file)) } catch (_) { /**/ }
@@ -179,7 +183,7 @@ function save(req, res) {
     collect_post_request(req, res, parsed_data => {
         sf.user = parsed_data
 
-        if (!js_validate(cookies.schema, sf.user)) return error(res, EINVAL)
+        if (!js_validate(survey, sf.user)) return error(res, EINVAL)
 
         try {
             fs.mkdirSync(dir, {recursive: true})
@@ -187,7 +191,7 @@ function save(req, res) {
             ;['index.html', 'form.js'].forEach( v => {
                 let to = path.join(dir, v)
                 fs.rmSync(to, {force: true})
-                let from = path.resolve(path.join(PUBLIC_DIR, path.dirname(cookies.schema), v))
+                let from = path.resolve(path.join(PUBLIC_DIR, survey, v))
                 fs.symlinkSync(from, to)
             })
         } catch(err) {

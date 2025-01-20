@@ -31,9 +31,11 @@ function submit() {
     }
 }
 
-function cookie(name) {
-    return document.cookie
-        .match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)')?.pop() || ''
+function local_storage_key() {
+    let url = new URL(window.location.href)
+    let m = url.pathname.match(/([^/]+)\/+$/)
+    if (!m) return null
+    return `survey-${m[1]}`
 }
 
 function save_user_input(form) {
@@ -41,8 +43,8 @@ function save_user_input(form) {
     let json = Object.fromEntries(Array.from(fd.keys()).map(key => [
         key, fd.getAll(key).length > 1 ? fd.getAll(key) : fd.get(key)
     ]) )
-    let key = cookie('schema')
-    if (!key) return console.error('no value for the cookie "schema"')
+    let key = local_storage_key()
+    if (!key) return console.error('failed to guess the survey name')
     localStorage.setItem(key, JSON.stringify(json))
 }
 
@@ -88,8 +90,8 @@ function load_user_meta(form, input) {
 }
 
 function local_storage() {
-    let key = cookie('schema')
-    if (!key) return console.error('no value for the cookie "schema"')
+    let key = local_storage_key()
+    if (!key) return console.error('failed to guess the survey name')
     return JSON.parse(localStorage.getItem(key))
 }
 
