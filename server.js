@@ -5,16 +5,27 @@ import fs from 'fs'
 import crypto from 'crypto'
 import path from 'path'
 import querystring from 'querystring'
+import util from 'util'
 import Ajv from 'ajv'
 import mime from 'mime'
 
 function errx(...s) { console.error('Error:', ...s); process.exit(1) }
 
-if (process.argv.length !== 2+2) errx('Usage: server.js public_dir db_dir')
+let OPT = util.parseArgs({
+    options: {
+        'max-edits': { type: 'string', default: '5' },
+        'expiration': { type: 'boolean', default: true },
+    },
+    allowNegative: true,
+    allowPositionals: true,
+})
+
+OPT.values['max-edits'] = parseInt(OPT.values['max-edits']) || 0
+if (OPT.positionals.length !== 2) errx('Usage: server.js public_dir db_dir')
 
 let SECRET     = process.env.SECRET || errx('env SECRET is unset')
-let PUBLIC_DIR = process.argv[2+0]
-let DB_DIR     = process.argv[2+1]
+let PUBLIC_DIR = OPT.positionals[0]
+let DB_DIR     = OPT.positionals[1]
 
 if (path.resolve(PUBLIC_DIR).startsWith(path.resolve(DB_DIR)))
     errx("db_dir can't be equal to or reside in public_dir")
@@ -81,6 +92,7 @@ function cookie_set(path_obj, req, res) {
 
 // a survey file MUST have its mtime set in the future
 function survey_valid(file, stats) {
+    if (!OPT.values.expiration) return true
     if (path.join(PUBLIC_DIR, 'index.html') === file) return true
     if (path.basename(file) !== 'index.html') return true
     return stats.mtimeMs > Date.now()
@@ -149,8 +161,11 @@ function save(req, res) {
     let sf
     try { sf = JSON.parse(fs.readFileSync(file)) } catch (_) { /**/ }
 
-    if (sf?.edits?.total >= 5 || Date.now() - sf?.edits?.last > 60*5*1000)
-        return error(res, 403, 'Too many edits or expired edit window')
+    if (OPT.values['max-edits'] > 0) {
+        if (sf?.edits?.total >= OPT.values['max-edits']
+            || Date.now() - sf?.edits?.last > 60*5*1000)
+            return error(res, 403, 'Too many edits or expired edit window')
+    }
 
     sf = {
         edits: {

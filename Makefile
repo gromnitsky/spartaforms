@@ -4,9 +4,9 @@ html := $(shell find $(public)/*/ -type f | grep /index.html$$)
 schema := $(patsubst $(public)/%.html, $(db)/%.schema.json, $(html))
 export SECRET := 12345
 
-cmd := node `pwd`/server.js $(public) $(db)
+cmd := `pwd`/server.js --no-expiration --max-edits ♾️ $(public) $(db)
 server: kill $(schema); $(cmd) &
-kill:; -pkill -f "$(cmd)"
+kill:; -pkill -ef "$(cmd)"
 
 # dependency will usually have mtime set in the future, hence 'touch' call;
 # consult README if you're appalled
