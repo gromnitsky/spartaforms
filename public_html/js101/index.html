@@ -2,39 +2,7 @@
 <title>SpartaForms :: JS101</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-  @media (min-width: 601px) {
-    body {
-      width: 600px;
-      margin: 8px auto;
-    }
-  }
-
-  input:user-invalid {
-    border: 2px solid red;
-  }
-
-  .invalid {
-    outline: 2px solid red;
-  }
-
-  .cols-fr1fr3 {
-    margin-top: 1em;
-    display: grid;
-    grid: auto-flow / 1fr 3fr;
-    gap: 5px;
-    align-items: flex-end;
-  }
-
-  fieldset {
-    border: 0;
-    padding: 0;
-    margin: 0;
-  }
-
-  .hidden { display: none; }
-  .meta span:nth-child(even) { font-family: monospace; }
-</style>
+<link rel="stylesheet" href="form.css">
 
 <form method="post"><fieldset>
 
@@ -64,7 +32,7 @@
   <div class="cols-fr1fr3">
     <label for="years_of_coding">Years of programming computers:</label>
     <input name="years_of_coding" id="years_of_coding" type="number"
-           min="0" max="99" style="width: 4em; height: fit-content" required>
+           min="0" max="99" style="width: 4em" required>
   </div>
 
   <!-- ====================================================== -->
@@ -229,7 +197,7 @@
 
   <!-- ====================================================== -->
 
-  <div style="display: flex; flex-direction: column">
+  <div class="textarea">
     <p>Your optional comment:</p>
     <textarea name="comment" maxlength="280" rows="5" style="resize: none"></textarea>
   </div>

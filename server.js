@@ -6,6 +6,7 @@ import crypto from 'crypto'
 import path from 'path'
 import querystring from 'querystring'
 import Ajv from 'ajv'
+import mime from 'mime'
 
 function errx(...s) { console.error('Error:', ...s); process.exit(1) }
 
@@ -108,12 +109,7 @@ function serve_static(req, res) {
         readable.once('data', () => {
             let extname = path.extname(file)
             res.setHeader('Content-Length', stats.size)
-            res.setHeader('Content-Type', {
-                '.html': 'text/html',
-                '.ico': 'image/x-icon',
-                '.js': 'application/javascript',
-                '.svg': 'image/svg+xml',
-            }[extname] || 'application/octet-stream')
+            res.setHeader('Content-Type', mime.getType(extname) || 'application/octet-stream')
 
             if (extname === '.html') cookie_set({
                 pathname,
