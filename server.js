@@ -34,19 +34,19 @@ let ajv = new Ajv({ coerceTypes: true })
 let SCHEMAS = {}
 
 function js_validate(survey, json) {
-    if (SCHEMAS[survey]) return SCHEMAS[survey]
-
-    let s
-    try {
-        s = fs.readFileSync(path.join(DB_DIR, survey, 'index.schema.json'))
-        SCHEMAS[survey] = ajv.compile(JSON.parse(s))
-    } catch (_) { return false }
+    if (!SCHEMAS[survey]) {
+        let s
+        try {
+            s = fs.readFileSync(path.join(DB_DIR, survey, 'index.schema.json'))
+            SCHEMAS[survey] = ajv.compile(JSON.parse(s))
+        } catch (_) { return {err: 'failed to compile schema'} }
+    }
     let r = SCHEMAS[survey](json)
-    if (!r) console.error(SCHEMAS[survey].errors)
-    return r
+    if (!r) return {err: SCHEMAS[survey].errors}
+    return {}
 }
 
-function error(writable, code, err) {
+function error(writable, code, err, text) {
     let sys = { 'ENOENT': 404, 'EACCES': 403, 'EINVAL': 400 }
     let status = sys[err.code] || code
     let msg = err.message || err
@@ -57,7 +57,9 @@ function error(writable, code, err) {
             writable.statusMessage = msg
         } catch {/**/}
     }
-    writable.end(`HTTP ${status}: ${err instanceof Error ? err.stack : msg}`)
+    let body = `HTTP ${status}: ${msg}`
+    if (text) body = [body, "\n\n", text].join``
+    writable.end(body)
 }
 
 function sha1(s) { return crypto.createHash('sha1').update(s).digest('hex') }
@@ -84,6 +86,7 @@ function cookie_set(path_obj, req, res) {
     let uuid = crypto.randomUUID()
     let sid = path.join(date, uuid)
     let sec = Math.floor((path_obj.mtimeMs - Date.now()) / 1000)
+    if (!OPT.values.expiration) sec = 60*60*24*365
     res.setHeader('Set-Cookie', [
         `sid=${sid}; Max-Age=${sec}; Path=${path_obj.pathname}`,
         `signature=${sha1(SECRET+sid)}; Max-Age=${sec}; Path=${path_obj.pathname}`,
@@ -179,8 +182,9 @@ function save(req, res) {
     collect_post_request(req, res, parsed_data => {
         sf.user = parsed_data
 
-        if (!js_validate(survey, sf.user))
-            return error(res, 400, 'Failed payload validation')
+        let jsv = js_validate(survey, sf.user)
+        if (jsv.err) return error(res, 400, 'Failed payload validation',
+                                  JSON.stringify(jsv.err, null, 2))
 
         let survey_src_dir = path.join(PUBLIC_DIR, survey)
         try {
