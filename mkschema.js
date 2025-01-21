@@ -142,11 +142,16 @@ let ranges = nodes.filter( v => {
     return v.name === 'input' && $(v).attr('type') === 'range'
 }).map( v => new EInteger(v))
 
+/* <spartaforms-slider> */
+let spartaforms_sliders = nodes.filter( v => {
+    return v.name === 'spartaforms-slider'
+}).map( v => new EInteger(v))
+
 /* <textarea> */
 let textareas = nodes.filter( v => v.name === 'textarea')
     .map( v => new EString(v))
 
-texts.concat(numbers, ranges, textareas).forEach( v => {
+texts.concat(numbers, ranges, spartaforms_sliders, textareas).forEach( v => {
     schema.properties[v.name] = v.toJSON()
     if (v.required) schema.required.push(v.name)
 })

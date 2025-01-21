@@ -39,65 +39,15 @@
 
   <div>
     <p>Self-accessed JavaScript knowledge level:</p>
-    <div id="knowledge__slider">
-      <div id="knowledge__input">
-        <input type="range" name="knowledge" list="knowledge-list"
-               min="0" max="4" value="0" required>
-      </div>
-      <div id="knowledge__desc">
-        <span data-value="4">I'm Douglas Crockford 🧙‍♂️</span>
-        <span data-value="3"><i>Très bien</i></span>
-        <span data-value="2">Can code with an LLM</span>
-        <span data-value="1">Syntax only</span>
-        <span data-value="0">Nil</span>
-      </div>
-      <datalist id="knowledge-list">
-        <option value="4"></option>
-        <option value="3"></option>
-        <option value="2"></option>
-        <option value="1"></option>
-        <option value="0"></option>
-      </datalist>
-    </div>
+    <spartaforms-slider name="knowledge" min="0" max="4" value="0"
+                        fieldset="form > fieldset" required>
+      <span data-value="4">I'm Douglas Crockford 🧙‍♂️</span>
+      <span data-value="3"><i>Très bien</i></span>
+      <span data-value="2">Can code with an LLM</span>
+      <span data-value="1">Syntax only</span>
+      <span data-value="0">Nil</span>
+    </spartaforms-slider>
   </div>
-
-  <style>
-    #knowledge__slider {
-      display: flex;
-      height: 8rem;
-    }
-
-    #knowledge__input { width: 2rem; }
-    #knowledge__input input {
-      transform: rotate(-90deg);
-      transform-origin: 4rem 4rem;
-      cursor: pointer;
-      margin: 0;
-      width: 8rem;
-    }
-
-    #knowledge__desc {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      height: 8rem;
-    }
-    #knowledge__desc span {
-      cursor: pointer;
-      padding: 0 8px;
-    }
-    #knowledge__desc span:hover { background: gold; }
-  </style>
-
-  <script type="module">
-    let input = document.querySelector('#knowledge__slider input')
-    let fieldset = document.querySelector('form fieldset')
-    let fn = node => node.onclick = span => {
-        if (!fieldset.disabled)
-            input.value = span.target.dataset.value
-    }
-    document.querySelectorAll('#knowledge__desc span').forEach(fn)
-  </script>
 
   <!-- ====================================================== -->
 
@@ -209,3 +159,4 @@
 </fieldset></form>
 
 <script type="module" src="form.js"></script>
+<script type="module" src="widgets.js"></script>
