@@ -72,7 +72,7 @@ class SpartaForms_Slider extends HTMLElement {
         let input = doc.querySelector('#input input')
         let fieldset = this.form.querySelector('fieldset')
         let fn = node => node.onclick = span => {
-            if (fieldset.disabled) return
+            if (fieldset?.disabled) return
             input.value = span.currentTarget.dataset.value
             input.dispatchEvent(new Event('change'))
         }
