@@ -56,8 +56,8 @@ class EString extends E {
 }
 
 class EInteger extends E {
-    constructor(name) {
-        super(name, 'integer')
+    constructor(node) {
+        super(node, 'integer')
     }
 
     get minimum() {
@@ -108,6 +108,17 @@ class ERadios extends ECheckboxes {
     toJSON() { return { enum: this.enums } }
 }
 
+class ESelect extends E {       // TODO: add support for "multiple"
+    constructor(node) {
+        super(node, 'dummy')
+        let options = $(node).find('option').toArray()
+        let values = options.map( v => $(v).attr('value')).filter(Boolean)
+        this.enums = [...new Set(values)] // make uniq
+    }
+
+    toJSON() { return { enum: this.enums } }
+}
+
 function err(...s) {
     console.error('mkschema.js error:', ...s)
     process.exit(1)
@@ -151,10 +162,15 @@ let spartaforms_sliders = nodes.filter( v => {
 let textareas = nodes.filter( v => v.name === 'textarea')
     .map( v => new EString(v))
 
-texts.concat(numbers, ranges, spartaforms_sliders, textareas).forEach( v => {
-    schema.properties[v.name] = v.toJSON()
-    if (v.required) schema.required.push(v.name)
-})
+/* <select> */
+let selects = nodes.filter( v => v.name === 'select')
+    .map( v => new ESelect(v))
+
+texts.concat(numbers, ranges, spartaforms_sliders, textareas, selects)
+    .forEach( v => {
+        schema.properties[v.name] = v.toJSON()
+        if (v.required) schema.required.push(v.name)
+    })
 
 /* <input type="checkbox"> */
 let checkboxes = nodes.filter( v => v.name === 'input' && $(v).attr('type') === 'checkbox')
