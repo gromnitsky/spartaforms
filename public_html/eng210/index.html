@@ -1,0 +1,186 @@
+<!doctype html>
+<title>SpartaForms :: ENG210</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="form.css">
+
+<form method="post"><fieldset>
+
+  <div class="meta hidden cols-fr1fr3">
+    <span>Total edits:</span>
+    <span data-name="total"></span>
+    <span>Last:</span>
+    <span data-name="last"></span>
+    <span>IP:</span>
+    <span data-name="ip"></span>
+    <span>User-agent:</span>
+    <span data-name="user_agent"></span>
+  </div>
+
+  <div class="cols-fr1fr3">
+    <label for="name">Name:</label>
+    <input name="name" id="name"
+           pattern="[a-zA-Z\u00C0-\u01FF'.\-]{2,}[a-zA-Z\u00C0-\u01FF' .\-]*"
+           type="search" spellcheck="false" maxlength="100" required>
+    <label for="age">Age:</label>
+    <input name="age" id="age" type="number"
+           min="16" max="99" style="width: 4em" required>
+  </div>
+
+  <!-- ====================================================== -->
+
+  <div class="cols-fr1fr3">
+    <label for="academic_year">Academic year:</label>
+    <select name="academic_year" id="academic_year" required
+            style="width: 10em">
+      <option value="">— Select —</option>
+      <option value="freshman">Freshman</option>
+      <option value="sophomore">Sophomore</option>
+      <option value="junior">Junior</option>
+      <option value="senior">Senior</option>
+      <option value="graduate">Graduate</option>
+    </select>
+  </div>
+
+  <!-- ====================================================== -->
+
+  <div>
+    <p>What other literature courses have you taken before?</p>
+    <div class="checkboxes">
+      <input type="checkbox" id="litcourses_greek_roman" name="litcourses" value="greek_roman">
+      <label for="litcourses_greek_roman">Greek/Roman</label>
+      <input type="checkbox" id="litcourses_medieval" name="litcourses" value="medieval">
+      <label for="litcourses_medieval">Medieval</label>
+      <input type="checkbox" id="litcourses_renaissance" name="litcourses" value="renaissance">
+      <label for="litcourses_renaissance">Renaissance</label>
+      <input type="checkbox" id="litcourses_Modern" name="litcourses" value="Modern">
+      <label for="litcourses_Modern">Modern</label>
+    </div>
+  </div>
+
+  <!-- ====================================================== -->
+
+  <div>
+    <p>What aspects of 19th-century English
+      literature interest you the most?</p>
+    <div class="checkboxes checkboxes-required">
+      <input type="checkbox" id="aspects_novels" name="aspects" value="novels"
+             data-required="true">
+      <label for="aspects_novels">Novels</label>
+      <input type="checkbox" id="aspects_poetry" name="aspects" value="poetry">
+      <label for="aspects_poetry">Poetry</label>
+      <input type="checkbox" id="aspects_drama" name="aspects" value="drama">
+      <label for="aspects_drama">Drama</label>
+      <input type="checkbox" id="aspects_history" name="aspects" value="history">
+      <label for="aspects_history">History</label>
+      <input type="checkbox" id="aspects_socpol" name="aspects" value="socpol">
+      <label for="aspects_socpol">Social/political themes</label>
+      <input type="checkbox" id="aspects_victorian" name="aspects" value="victorian">
+      <label for="aspects_victorian">Victorian literature</label>
+    </div>
+
+    <div class="cols-fr1fr3" style="margin-top: 0.2em">
+      <label for="aspects_other" style="padding-left: 0.25em">
+        <i>Other:</i>
+      </label>
+      <input name="aspects_other" id="aspects_other" type="search" maxlength="100">
+    </div>
+  </div>
+
+  <!-- ====================================================== -->
+
+  <div class="checkboxes-required">
+    <p>What types of books or authors do you typically enjoy?</p>
+    <div class="checkboxes">
+      <input type="checkbox" id="booktypes_classic" name="booktypes" value="classic" data-required="true">
+      <label for="booktypes_classic">Classics</label>
+      <input type="checkbox" id="booktypes_modern" name="booktypes" value="modern">
+      <label for="booktypes_modern">Modern fiction</label>
+      <input type="checkbox" id="booktypes_nonfiction" name="booktypes" value="nonfiction">
+      <label for="booktypes_nonfiction">Non-fiction</label>
+      <input type="checkbox" id="booktypes_fantasy" name="booktypes" value="fantasy">
+      <label for="booktypes_fantasy">Fantasy</label>
+      <input type="checkbox" id="booktypes_science" name="booktypes" value="science">
+      <label for="booktypes_science">Science fiction</label>
+    </div>
+  </div>
+
+  <!-- ====================================================== -->
+
+  <div>
+    <p>Which economic concepts are familiar to you:</p>
+    <div class="checkboxes"
+         style="grid-template-columns: repeat(2, 1.5em 1fr);">
+      <input type="checkbox" id="econ_concepts_production_trade" name="econ_concepts" value="production_trade">
+      <label for="econ_concepts_production_trade">Production & trade</label>
+      <input type="checkbox" id="econ_concepts_elasticity_taxation" name="econ_concepts" value="elasticity_taxation">
+      <label for="econ_concepts_elasticity_taxation">Elasticity & taxation</label>
+      <input type="checkbox" id="econ_concepts_competition_monopolies" name="econ_concepts" value="competition_monopolies">
+      <label for="econ_concepts_competition_monopolies">Competition & monopolies</label>
+      <input type="checkbox" id="econ_concepts_macroeconomics_unemployment" name="econ_concepts" value="macroeconomics_unemployment">
+      <label for="econ_concepts_macroeconomics_unemployment">Macroeconomics & unemployment</label>
+      <input type="checkbox" id="econ_concepts_economic_growth" name="econ_concepts" value="economic_growth">
+      <label for="econ_concepts_economic_growth">Economic growth</label>
+      <input type="checkbox" id="econ_concepts_fiscal_monetary" name="econ_concepts" value="fiscal_monetary">
+      <label for="econ_concepts_fiscal_monetary">Fiscal & monetary policy</label>
+      <input type="checkbox" id="econ_concepts_banking" name="econ_concepts" value="banking">
+      <label for="econ_concepts_banking">Banking systems & financial institutions</label>
+    </div>
+  </div>
+
+  <!-- ====================================================== -->
+
+  <div>
+    <p>What type of economic context would you find most helpful in
+    understanding 19th-century literature?</p>
+    <div class="checkboxes checkboxes-required"
+         style="grid-template-columns: repeat(1, 1.5em 1fr);">
+      <input type="checkbox" id="econ_contex_key_events" name="econ_context" value="key_events" data-required="true">
+      <label for="econ_contex_key_events">Key economic events (e.g., industrial revolution)</label>
+      <input type="checkbox" id="econ_contex_daily_life" name="econ_context" value="daily_life">
+      <label for="econ_contex_daily_life">Daily economic life of different social classes (e.g., workers, aristocracy)</label>
+      <input type="checkbox" id="econ_contex_policies" name="econ_context" value="policies">
+      <label for="econ_contex_policies">Economic policies and their effects on society</label>
+      <input type="checkbox" id="econ_contex_trade" name="econ_context" value="trade">
+      <label for="econ_contex_trade">Trade and global economics</label>
+      <input type="checkbox" id="econ_contex_banking" name="econ_context" value="banking">
+      <label for="econ_contex_banking">Banking and credit systems</label>
+    </div>
+
+    <div class="cols-fr1fr3" style="margin-top: 0.2em">
+      <label for="econ_context_other" style="padding-left: 0.25em">
+        <i>Other:</i>
+      </label>
+      <input name="econ_context_other" id="econ_context_other" type="search" maxlength="100">
+    </div>
+  </div>
+
+  <!-- ====================================================== -->
+
+  <div>
+    <p>When having a choice:</p>
+    <div class="checkboxes">
+      <input type="radio" id="dev_kindle" name="dev" value="kindle" required>
+      <label for="dev_kindle">Kindle</label>
+      <input type="radio" id="dev_deadtree" name="dev" value="deadtree">
+      <label for="dev_deadtree">Dead tree</label>
+      <input type="radio" id="dev_audio" name="dev" value="audio">
+      <label for="dev_audio">Audio</label>
+    </div>
+  </div>
+
+  <!-- ====================================================== -->
+
+  <div class="textarea">
+    <p>Your optional comment:</p>
+    <textarea name="comment" maxlength="280" rows="5" style="resize: none"></textarea>
+  </div>
+
+  <!-- ====================================================== -->
+
+  <input type="submit" style="margin-top: 2em">
+
+</fieldset></form>
+
+<script type="module" src="widgets.js"></script>
+<script type="module" src="form.js"></script>

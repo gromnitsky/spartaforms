@@ -67,6 +67,10 @@ function load_user_input(form, input) {
         } else {
             if (elements.tagName === 'TEXTAREA') {
                 elements.value = input[key]
+            } else if (elements.tagName === 'SELECT') {
+                elements.querySelectorAll('option').forEach( v => {
+                    if (v.value === input[key]) v.selected = true
+                })
             } else {
                 // updates custom elements as well
                 elements.setAttribute('value', input[key])
