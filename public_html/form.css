@@ -32,3 +32,13 @@ form > fieldset {
   display: flex;
   flex-direction: column;
 }
+
+.checkboxes {
+  display: grid;
+  grid-template-columns: repeat(3, 1.5em 1fr);
+  align-items: start;
+}
+
+.checkboxes input {
+  justify-self: left;
+}

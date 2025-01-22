@@ -50,7 +50,7 @@
 
   <!-- ====================================================== -->
 
-  <div id="interests">
+  <div class="checkboxes-required">
     <p>Area of interests:</p>
     <div class="checkboxes">
       <input type="checkbox" id="int_front" name="int" value="frontend"
@@ -63,18 +63,6 @@
              title="E.g., microcontrollers.">Other</label>
     </div>
   </div>
-
-  <style>
-    .checkboxes {
-      display: grid;
-      grid-template-columns: repeat(3, 1.5em 1fr);
-      align-items: start;
-    }
-
-    .checkboxes input {
-      justify-self: left;
-    }
-  </style>
 
   <!-- ====================================================== -->
 
@@ -157,5 +145,5 @@
 
 </fieldset></form>
 
-<script type="module" src="form.js"></script>
 <script type="module" src="widgets.js"></script>
+<script type="module" src="form.js"></script>

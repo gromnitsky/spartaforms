@@ -1,33 +1,30 @@
-let $$ = document.querySelectorAll.bind(document)
-let url = new URL(window.location.href)
-if (url.searchParams.get('debug') === '1') {
-    $$('form *[required]').forEach( node => node.required = false)
-}
-
 class Checkboxes {
-    constructor(css_selector) {
-        this.div = $$(`${css_selector} div`)[0]
-        this.inputs = [...$$(`${css_selector} input`)]
+    constructor(container) {
+        this.container = container
+        this.inputs = [...container.querySelectorAll('input')]
         let click = node => node.onclick = () => {
             return this.invalid_state(this.valid() ? 'remove' : 'add')
         }
         this.inputs.forEach(click)
     }
 
-    invalid_state(operation) { this.div.classList[operation]('invalid') }
+    invalid_state(operation) { this.container.classList[operation]('invalid') }
 
     valid() { return this.inputs.some( node => node.checked) }
 }
 
-let interests = new Checkboxes('#interests')
+let checkboxes_required = [...document.querySelectorAll('.checkboxes-required')]
+    .map( v => new Checkboxes(v))
 
 function submit() {
     save_user_input(this)
 
-    if (!interests.valid()) {
-        alert('"Area of interests" is unset')
-        interests.invalid_state('add')
-        return false
+    for (let checkboxes of checkboxes_required) {
+        if (!checkboxes.valid()) {
+            alert('Some checkboxes are unset.')
+            checkboxes.invalid_state('add')
+            return false
+        }
     }
 }
 
@@ -100,6 +97,13 @@ function local_storage() {
     return JSON.parse(localStorage.getItem(key))
 }
 
+
+let url = new URL(window.location.href)
+if (url.searchParams.get('debug') === '1') {
+    document.querySelectorAll('form *[required]')
+        .forEach( node => node.required = false)
+}
+
 // try to load previous results when running fron db/ directory
 let results
 try {
@@ -109,7 +113,7 @@ try {
     })
 } catch (_) { /**/ }
 
-let form = $$('form')[0]
+let form = document.querySelector('form')
 
 if (results) { // load survey results
     load_user_input(form, results?.user)

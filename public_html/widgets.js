@@ -36,7 +36,7 @@ class SpartaForms_Slider extends HTMLElement {
     cursor: pointer;
     padding: 0 8px;
   }
-  ::slotted(span:hover) { background: gold; }
+  ::slotted(span:hover) { background: var(--spartaforms-slider-list-hover, gold); }
 </style>
 
 <div id="container">
