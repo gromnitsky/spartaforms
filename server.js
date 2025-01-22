@@ -24,10 +24,10 @@ OPT.values['max-edits'] = parseInt(OPT.values['max-edits']) || 0
 if (OPT.positionals.length !== 2) errx('Usage: server.js public_dir db_dir')
 
 let SECRET     = process.env.SECRET || errx('env SECRET is unset')
-let PUBLIC_DIR = OPT.positionals[0]
+let PUBLIC_DIR = path.resolve(OPT.positionals[0])
 let DB_DIR     = OPT.positionals[1]
 
-if (path.resolve(PUBLIC_DIR).startsWith(path.resolve(DB_DIR)))
+if (PUBLIC_DIR.startsWith(path.resolve(DB_DIR)))
     errx("db_dir can't be equal to or reside in public_dir")
 
 let ajv = new Ajv({ coerceTypes: true })
@@ -96,7 +96,7 @@ function cookie_set(path_obj, req, res) {
 // a survey file MUST have its mtime set in the future
 function survey_valid(file, stats) {
     if (!OPT.values.expiration) return true
-    if (path.join(PUBLIC_DIR, 'index.html') === file) return true
+    if (path.dirname(file) === PUBLIC_DIR) return true
     if (path.basename(file) !== 'index.html') return true
     return stats.mtimeMs > Date.now()
 }
@@ -126,10 +126,12 @@ function serve_static(req, res) {
             res.setHeader('Content-Length', stats.size)
             res.setHeader('Content-Type', mime.getType(extname) || 'application/octet-stream')
 
-            if (extname === '.html') cookie_set({
-                pathname,
-                mtimeMs: stats.mtimeMs
-            }, req, res)
+            if (path.basename(file) === 'index.html'
+                && path.dirname(file) !== PUBLIC_DIR)
+                cookie_set({
+                    pathname,
+                    mtimeMs: stats.mtimeMs
+                }, req, res)
         })
         readable.on('error', err => error(res, 500, err))
         readable.pipe(res)
@@ -193,7 +195,7 @@ function save(req, res) {
             fs.readdirSync(survey_src_dir).forEach( v => {
                 let to = path.join(dir, v)
                 fs.rmSync(to, {force: true})
-                let from = path.resolve(path.join(survey_src_dir, v))
+                let from = path.join(survey_src_dir, v)
                 fs.symlinkSync(from, to)
             })
         } catch(err) {
