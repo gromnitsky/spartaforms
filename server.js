@@ -127,7 +127,7 @@ function url_pathname(raw_http_url) {
 
 function serve_static(req, res) {
     let pathname = url_pathname(req.url)
-    if (!path.extname(pathname) && pathname[pathname.length-1] !== '/') {
+    if (!path.extname(pathname) && pathname.at(-1) !== '/') {
         // this means we can't serve files w/o file extension
         return res.writeHead(301, { Location: `${pathname}/` }).end()
     }
