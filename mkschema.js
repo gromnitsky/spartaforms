@@ -77,29 +77,28 @@ class ECheckboxes {
         this.name = $(this.nodes[0]).attr('name')
         let values = this.nodes.map( v => $(v).attr('value'))
         this.enums = [...new Set(values)] // make uniq
+
+        this.parent = $(this.nodes[0]).parent()
     }
 
-    get required() {
-        return this.nodes.some( v => {
-            return $(v).attr('data-required') || $(v).attr('required') != null
-        })
-    }
+    get required() { return this.parent.attr('data-required') }
+
+    get minItems() { return parseInt(this.parent.attr('data-min')) || 1 }
 
     toJSON() {
-        return {
-            oneOf: [{
-                type: "array",
-                items: {
-                    type: "string",
-                    enum: this.enums
-                },
-                minItems: 1,
-                maxItems: this.enums.length,
-                uniqueItems: true
-            }, {
+        let arr = {
+            type: "array",
+            items: {
+                type: "string",
                 enum: this.enums
-            }]
+            },
+            minItems: this.minItems,
+            maxItems: this.enums.length,
+            uniqueItems: true
         }
+
+        if (this.minItems === 1) return { oneOf: [arr, { enum: this.enums }] }
+        return arr
     }
 }
 

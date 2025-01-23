@@ -1,6 +1,7 @@
-class Checkboxes {
+class CheckboxesRequired {
     constructor(container) {
         this.container = container
+        this.min = parseInt(container.dataset.min) || 1
         this.inputs = [...container.querySelectorAll('input')]
         let click = node => node.onclick = () => {
             return this.invalid_state(this.valid() ? 'remove' : 'add')
@@ -10,11 +11,15 @@ class Checkboxes {
 
     invalid_state(operation) { this.container.classList[operation]('invalid') }
 
-    valid() { return this.inputs.some( node => node.checked) }
+    valid() {
+        return this.inputs.reduce( (acc, node) => {
+            return acc + (node.checked ? 1 : 0)
+        }, 0) >= this.min
+    }
 }
 
 let checkboxes_required = [...document.querySelectorAll('.checkboxes-required')]
-    .map( v => new Checkboxes(v))
+    .map( v => new CheckboxesRequired(v))
 
 function submit() {
     save_user_input(this)

@@ -63,9 +63,8 @@
   <div>
     <p>What aspects of 19th-century English
       literature interest you the most?</p>
-    <div class="checkboxes checkboxes-required">
-      <input type="checkbox" id="aspects_novels" name="aspects" value="novels"
-             data-required="true">
+    <div class="checkboxes checkboxes-required" data-required="true">
+      <input type="checkbox" id="aspects_novels" name="aspects" value="novels">
       <label for="aspects_novels">Novels</label>
       <input type="checkbox" id="aspects_poetry" name="aspects" value="poetry">
       <label for="aspects_poetry">Poetry</label>
@@ -89,10 +88,10 @@
 
   <!-- ====================================================== -->
 
-  <div class="checkboxes-required">
+  <div>
     <p>What types of books or authors do you typically enjoy?</p>
-    <div class="checkboxes">
-      <input type="checkbox" id="booktypes_classic" name="booktypes" value="classic" data-required="true">
+    <div class="checkboxes checkboxes-required">
+      <input type="checkbox" id="booktypes_classic" name="booktypes" value="classic">
       <label for="booktypes_classic">Classics</label>
       <input type="checkbox" id="booktypes_modern" name="booktypes" value="modern">
       <label for="booktypes_modern">Modern fiction</label>
@@ -132,10 +131,11 @@
 
   <div>
     <p>What type of economic context would you find most helpful in
-    understanding 19th-century literature?</p>
+    understanding 19th-century literature? Select at least 2:</p>
     <div class="checkboxes checkboxes-required"
+         data-required="true" data-min="2"
          style="grid-template-columns: repeat(1, 1.5em 1fr);">
-      <input type="checkbox" id="econ_contex_key_events" name="econ_context" value="key_events" data-required="true">
+      <input type="checkbox" id="econ_contex_key_events" name="econ_context" value="key_events">
       <label for="econ_contex_key_events">Key economic events (e.g., industrial revolution)</label>
       <input type="checkbox" id="econ_contex_daily_life" name="econ_context" value="daily_life">
       <label for="econ_contex_daily_life">Daily economic life of different social classes (e.g., workers, aristocracy)</label>
@@ -145,13 +145,6 @@
       <label for="econ_contex_trade">Trade and global economics</label>
       <input type="checkbox" id="econ_contex_banking" name="econ_context" value="banking">
       <label for="econ_contex_banking">Banking and credit systems</label>
-    </div>
-
-    <div class="cols-fr1fr3" style="margin-top: 0.2em">
-      <label for="econ_context_other" style="padding-left: 0.25em">
-        <i>Other:</i>
-      </label>
-      <input name="econ_context_other" id="econ_context_other" type="search" maxlength="100">
     </div>
   </div>
 
