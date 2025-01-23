@@ -49,10 +49,10 @@ function load_user_input(form, input) {
     if (!input) return
 
     Object.keys(input).map( k => {
-        let nodes = form.querySelectorAll(`*[name=${k}]`)
+        let nodes = form.querySelectorAll(`*[name="${k}"]`)
         return [k, nodes.length > 1 ? [...nodes] : nodes[0]]
-    }).forEach( a => {
-        let [key, elements] = a
+
+    }).filter( ([_, v]) => Boolean(v)).forEach( ([key, elements]) => {
         if (Array.isArray(elements)) { // a set of <input>
             elements.forEach( node => {
                 if (Array.isArray(input[key])) { // checkboxes
@@ -76,6 +76,7 @@ function load_user_input(form, input) {
                 elements.setAttribute('value', input[key])
             }
         }
+
     })
 }
 
