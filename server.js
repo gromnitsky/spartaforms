@@ -16,12 +16,14 @@ let OPT = util.parseArgs({
     options: {
         'max-edits': { type: 'string', default: '5' },
         'expiration': { type: 'boolean', default: true },
+        'max-payload': { type: 'string', default: '5120' },
     },
     allowNegative: true,
     allowPositionals: true,
 })
 
 OPT.values['max-edits'] = parseInt(OPT.values['max-edits']) || 0
+OPT.values['max-payload'] = parseInt(OPT.values['max-payload']) || 5120
 if (OPT.positionals.length !== 2) errx('Usage: server.js public_dir db_dir')
 
 let SECRET     = process.env.SECRET || errx('env SECRET is unset')
@@ -164,7 +166,7 @@ function collect_post_request(req, res, callback) {
     req.on('data', chunk => {
         chunks.push(chunk)
         size += Buffer.byteLength(chunk)
-        if (size > 5*1024) {
+        if (size > OPT.values['max-payload']) {
             error(res, 413, 'Payload is too big')
             req.destroy()
         }
