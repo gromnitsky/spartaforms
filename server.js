@@ -6,6 +6,7 @@ import crypto from 'crypto'
 import path from 'path'
 import querystring from 'querystring'
 import util from 'util'
+import child_process from 'child_process';
 import Ajv from 'ajv'
 import mime from 'mime'
 
@@ -33,17 +34,36 @@ if (PUBLIC_DIR.startsWith(path.resolve(DB_DIR)))
 let ajv = new Ajv({ coerceTypes: true })
 let SCHEMAS = {}
 
-function js_validate(survey, json) {
-    if (!SCHEMAS[survey]) {
-        let s
+function js_make(survey, callback) {
+    let generator = path.join(import.meta.dirname, 'mkschema.js')
+    let src = path.join(PUBLIC_DIR, survey, 'index.html')
+    let stat
+    try { stat = fs.statSync(src) } catch (err) { return callback(err) }
+    console.log(111, stat.mtimeMs, (SCHEMAS[survey]?.mtimeMs || 0))
+    if (stat.mtimeMs <= (SCHEMAS[survey]?.mtimeMs || 0))
+        return callback()
+
+    child_process.execFile(generator, [src, 'form'], (err, stdout) => {
+        if (err) return callback(err)
+        SCHEMAS[survey] = {}
         try {
-            s = fs.readFileSync(path.join(DB_DIR, survey, 'index.schema.json'))
-            SCHEMAS[survey] = ajv.compile(JSON.parse(s))
-        } catch (_) { return {err: 'failed to compile schema'} }
-    }
-    let r = SCHEMAS[survey](json)
-    if (!r) return {err: SCHEMAS[survey].errors}
-    return {}
+            SCHEMAS[survey].validator = ajv.compile(JSON.parse(stdout))
+        } catch (err) {
+            err.toJSON = () => ({message: err.message})
+            return callback(err)
+        }
+        SCHEMAS[survey].mtimeMs = stat.mtimeMs
+        callback()
+    })
+}
+
+function js_validate(survey, json, callback) {
+    js_make(survey, err => {
+        if (err) return callback(err)
+        let r = SCHEMAS[survey].validator(json)
+        if (!r) return callback(SCHEMAS[survey].validator.errors)
+        callback()
+    })
 }
 
 function error(writable, code, err, text) {
@@ -184,25 +204,26 @@ function save(req, res) {
     collect_post_request(req, res, parsed_data => {
         sf.user = parsed_data
 
-        let jsv = js_validate(survey, sf.user)
-        if (jsv.err) return error(res, 400, 'Failed payload validation',
-                                  JSON.stringify(jsv.err, null, 2))
+        js_validate(survey, sf.user, err => {
+            if (err) return error(res, 400, 'Failed payload validation',
+                                  JSON.stringify(err, null, 2))
 
-        let survey_src_dir = path.join(PUBLIC_DIR, survey)
-        try {
-            fs.mkdirSync(dir, {recursive: true})
-            fs.writeFileSync(file, JSON.stringify(sf))
-            fs.readdirSync(survey_src_dir).forEach( v => {
-                let to = path.join(dir, v)
-                fs.rmSync(to, {force: true})
-                let from = path.join(survey_src_dir, v)
-                fs.symlinkSync(from, to)
-            })
-        } catch(err) {
-            return error(res, 500, err)
-        }
-        let from = req.url.replace(/^\/+/, '')
-        res.writeHead(303, { Location: `/posted.html?from=${from}` }).end()
+            let survey_src_dir = path.join(PUBLIC_DIR, survey)
+            try {
+                fs.mkdirSync(dir, {recursive: true})
+                fs.writeFileSync(file, JSON.stringify(sf))
+                fs.readdirSync(survey_src_dir).forEach( v => {
+                    let to = path.join(dir, v)
+                    fs.rmSync(to, {force: true})
+                    let from = path.join(survey_src_dir, v)
+                    fs.symlinkSync(from, to)
+                })
+            } catch(err) {
+                return error(res, 500, err)
+            }
+            let from = req.url.replace(/^\/+/, '')
+            res.writeHead(303, { Location: `/posted.html?from=${from}` }).end()
+        })
     })
 }
 
