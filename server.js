@@ -39,7 +39,6 @@ function js_make(survey, callback) {
     let src = path.join(PUBLIC_DIR, survey, 'index.html')
     let stat
     try { stat = fs.statSync(src) } catch (err) { return callback(err) }
-    console.log(111, stat.mtimeMs, (SCHEMAS[survey]?.mtimeMs || 0))
     if (stat.mtimeMs <= (SCHEMAS[survey]?.mtimeMs || 0))
         return callback()
 
