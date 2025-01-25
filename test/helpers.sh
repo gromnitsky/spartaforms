@@ -7,7 +7,7 @@ trap stop 0
 
 stop() {
     ps --forest -o pid= -g "`cat "$pidfile"`" | xargs -r kill
-    rm -f cookies.txt server.pid
+    rm -rf cookies.txt server.pid $db
 }
 
 start() {
