@@ -104,6 +104,11 @@ class ECheckboxes {
 
 class ERadios extends ECheckboxes {
     constructor(nodes) { super(nodes) }
+
+    get required() {
+        return this.nodes.some( v => $(v).attr('required') != null)
+    }
+
     toJSON() { return { enum: this.enums } }
 }
 
