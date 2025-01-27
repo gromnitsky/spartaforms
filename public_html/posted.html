@@ -12,15 +12,17 @@
 <h1>Posted</h1>
 
 <form class="hidden" method="GET" action="">
-  <p>Editing is available within 5 min after the last edit, 5 edits max.</p>
+  <p>Edits allowed for 5m after last change. Total edits left: <span>?</span>.</p>
   <input type="submit" value="Edit">
 </form>
 
 <script type="module">
+  let form = document.querySelector('form')
   let url = new URL(window.location.href)
-  if (url.searchParams.get('from')) {
-      let form = document.querySelector('form')
-      form.action = url.searchParams.get('from')
-      form.classList.remove('hidden')
-  }
+  let from = url.searchParams.get('from')
+  let edits = parseInt(url.searchParams.get('edits')) || 0
+
+  form.querySelector('p span').innerText = edits
+  if (from) form.action = from
+  if (from && edits > 0) form.classList.remove('hidden')
 </script>

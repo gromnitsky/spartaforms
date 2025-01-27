@@ -222,8 +222,10 @@ function save(req, res) {
             } catch(err) {
                 return error(res, 500, err)
             }
-            let from = req.url.replace(/^\/+/, '')
-            res.writeHead(303, { Location: `/posted.html?from=${from}` }).end()
+            let u = new URL('http://example.com')
+            u.searchParams.set('edits', OPT.values['max-edits']-sf.edits.total)
+            u.searchParams.set('from', req.url.replace(/^\/+/, ''))
+            res.writeHead(303, { Location: `/posted.html?${u.searchParams}` }).end()
         })
     })
 }
