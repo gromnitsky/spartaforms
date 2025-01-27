@@ -17,16 +17,21 @@ printf .
 curl -sfL -i $host:$port/foo | head -20 | grep -q '^HTTP/1.1 404' ||
     errx "/foo must 404"
 
+printf .
+touch ../public_html/js101/index.html
+curl -sfL -i $host:$port/js101/ | grep -q '^HTTP/1.1 403' ||
+    errx "form must be expired"
 
 printf .
 curl -sfL -i $host:$port/js101/ --data-raw 'name=bob' | head -1 |
     grep -q '^HTTP/1.1 412' || errx "fails to check for cookies"
 
 printf .
+touch -d 2099-01-01 ../public_html/js101/index.html
 curl -sfL -b cookies.txt -c cookies.txt $host:$port/js101/ > /dev/null
 curl -sfL -b cookies.txt -c cookies.txt -i $host:$port/js101/ \
      --data-raw 'name=bob' | head -1 | grep -q '^HTTP/1.1 400' ||
-    errx "fails to validate payload"
+    errx "form validation must fail"
 
 post1() {
     curl -sfL -b cookies.txt -c cookies.txt -i $host:$port/js101/ \
