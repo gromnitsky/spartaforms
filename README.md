@@ -22,7 +22,7 @@ How it works:
 
 8. The user can edit the survey within 5m of the last post.
 
-9. `$db_dir` will contain not only the survey results, but a symlinks
+9. `$db_dir` will contain not only the survey results, but symlinks
    to all the files from `$public_dir/foo/` directory. If you open
    `index.html` (under any static web server) it'll fill the form with
    the survey results.
