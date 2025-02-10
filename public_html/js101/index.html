@@ -39,20 +39,20 @@
 
   <div>
     <p>Self-accessed JavaScript knowledge level:</p>
-    <spartaforms-slider name="knowledge" min="0" max="4" value="0" required>
+    <v-slider name="knowledge" min="0" max="4" value="0" required>
       <span data-value="4">I'm Douglas Crockford 🧙‍♂️</span>
       <span data-value="3"><i>Très bien</i></span>
       <span data-value="2">Can code with an LLM</span>
       <span data-value="1">Syntax only</span>
       <span data-value="0">Nil</span>
-    </spartaforms-slider>
+    </v-slider>
   </div>
 
   <!-- ====================================================== -->
 
   <div>
     <p>Area of interests:</p>
-    <div class="checkboxes checkboxes-required" data-required="true">
+    <checkboxes-group min="1" required class="checkboxes">
       <input type="checkbox" id="int_front" name="int" value="frontend">
       <label for="int_front">Frontend</label>
       <input type="checkbox" id="int_back" name="int" value="backend">
@@ -60,7 +60,7 @@
       <input type="checkbox" id="int_other" name="int" value="other">
       <label for="int_other"
              title="E.g., microcontrollers.">Other</label>
-    </div>
+    </checkboxes-group>
   </div>
 
   <!-- ====================================================== -->

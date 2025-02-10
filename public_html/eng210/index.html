@@ -60,106 +60,96 @@
 
   <!-- ====================================================== -->
 
-  <div>
-    <p>What aspects of 19th-century English
-      literature interest you the most?</p>
-    <div class="checkboxes checkboxes-required" data-required="true">
-      <input type="checkbox" id="aspects_novels" name="aspects" value="novels">
-      <label for="aspects_novels">Novels</label>
-      <input type="checkbox" id="aspects_poetry" name="aspects" value="poetry">
-      <label for="aspects_poetry">Poetry</label>
-      <input type="checkbox" id="aspects_drama" name="aspects" value="drama">
-      <label for="aspects_drama">Drama</label>
-      <input type="checkbox" id="aspects_history" name="aspects" value="history">
-      <label for="aspects_history">History</label>
-      <input type="checkbox" id="aspects_socpol" name="aspects" value="socpol">
-      <label for="aspects_socpol">Social/political themes</label>
-      <input type="checkbox" id="aspects_victorian" name="aspects" value="victorian">
-      <label for="aspects_victorian">Victorian literature</label>
-    </div>
+  <p>What aspects of 19th-century English
+    literature interest you the most?</p>
+  <checkboxes-group min="1" class="checkboxes" required>
+    <input type="checkbox" id="aspects_novels" name="aspects" value="novels">
+    <label for="aspects_novels">Novels</label>
+    <input type="checkbox" id="aspects_poetry" name="aspects" value="poetry">
+    <label for="aspects_poetry">Poetry</label>
+    <input type="checkbox" id="aspects_drama" name="aspects" value="drama">
+    <label for="aspects_drama">Drama</label>
+    <input type="checkbox" id="aspects_history" name="aspects" value="history">
+    <label for="aspects_history">History</label>
+    <input type="checkbox" id="aspects_socpol" name="aspects" value="socpol">
+    <label for="aspects_socpol">Social/political themes</label>
+    <input type="checkbox" id="aspects_victorian" name="aspects" value="victorian">
+    <label for="aspects_victorian">Victorian literature</label>
+  </checkboxes-group>
 
-    <div class="cols-fr1fr3" style="margin-top: 0.2em">
-      <label for="aspects_other" style="padding-left: 0.25em">
-        <i>Other:</i>
-      </label>
-      <input name="aspects_other" id="aspects_other" type="search" maxlength="100">
-    </div>
+  <div class="cols-fr1fr3" style="margin-top: 0.2em">
+    <label for="aspects_other" style="padding-left: 0.25em">
+      <i>Other:</i>
+    </label>
+    <input name="aspects_other" id="aspects_other" type="search" maxlength="100">
   </div>
 
   <!-- ====================================================== -->
 
-  <div>
-    <p>What types of books or authors do you typically enjoy?</p>
-    <div class="checkboxes checkboxes-required">
-      <input type="checkbox" id="booktypes_classic" name="booktypes" value="classic">
-      <label for="booktypes_classic">Classics</label>
-      <input type="checkbox" id="booktypes_modern" name="booktypes" value="modern">
-      <label for="booktypes_modern">Modern fiction</label>
-      <input type="checkbox" id="booktypes_nonfiction" name="booktypes" value="nonfiction">
-      <label for="booktypes_nonfiction">Non-fiction</label>
-      <input type="checkbox" id="booktypes_fantasy" name="booktypes" value="fantasy">
-      <label for="booktypes_fantasy">Fantasy</label>
-      <input type="checkbox" id="booktypes_science" name="booktypes" value="science">
-      <label for="booktypes_science">Science fiction</label>
-    </div>
-  </div>
+  <p>What types of books or authors do you typically enjoy?</p>
+  <checkboxes-group class="checkboxes" min="1" required>
+    <input type="checkbox" id="booktypes_classic" name="booktypes" value="classic">
+    <label for="booktypes_classic">Classics</label>
+    <input type="checkbox" id="booktypes_modern" name="booktypes" value="modern">
+    <label for="booktypes_modern">Modern fiction</label>
+    <input type="checkbox" id="booktypes_nonfiction" name="booktypes" value="nonfiction">
+    <label for="booktypes_nonfiction">Non-fiction</label>
+    <input type="checkbox" id="booktypes_fantasy" name="booktypes" value="fantasy">
+    <label for="booktypes_fantasy">Fantasy</label>
+    <input type="checkbox" id="booktypes_science" name="booktypes" value="science">
+    <label for="booktypes_science">Science fiction</label>
+  </checkboxes-group>
 
   <!-- ====================================================== -->
 
-  <div>
-    <p>Which economic concepts are familiar to you:</p>
-    <div class="checkboxes"
-         style="grid-template-columns: repeat(2, 1.5em 1fr);">
-      <input type="checkbox" id="econ_concepts_production_trade" name="econ_concepts" value="production_trade">
-      <label for="econ_concepts_production_trade">Production & trade</label>
-      <input type="checkbox" id="econ_concepts_elasticity_taxation" name="econ_concepts" value="elasticity_taxation">
-      <label for="econ_concepts_elasticity_taxation">Elasticity & taxation</label>
-      <input type="checkbox" id="econ_concepts_competition_monopolies" name="econ_concepts" value="competition_monopolies">
-      <label for="econ_concepts_competition_monopolies">Competition & monopolies</label>
-      <input type="checkbox" id="econ_concepts_macroeconomics_unemployment" name="econ_concepts" value="macroeconomics_unemployment">
-      <label for="econ_concepts_macroeconomics_unemployment">Macroeconomics & unemployment</label>
-      <input type="checkbox" id="econ_concepts_economic_growth" name="econ_concepts" value="economic_growth">
-      <label for="econ_concepts_economic_growth">Economic growth</label>
-      <input type="checkbox" id="econ_concepts_fiscal_monetary" name="econ_concepts" value="fiscal_monetary">
-      <label for="econ_concepts_fiscal_monetary">Fiscal & monetary policy</label>
-      <input type="checkbox" id="econ_concepts_banking" name="econ_concepts" value="banking">
-      <label for="econ_concepts_banking">Banking systems & financial institutions</label>
-    </div>
-  </div>
+  <p>Which economic concepts are familiar to you:</p>
+  <checkboxes-group class="checkboxes"
+       style="grid-template-columns: repeat(2, 1.5em 1fr);">
+    <input type="checkbox" id="econ_concepts_production_trade" name="econ_concepts" value="production_trade">
+    <label for="econ_concepts_production_trade">Production & trade</label>
+    <input type="checkbox" id="econ_concepts_elasticity_taxation" name="econ_concepts" value="elasticity_taxation">
+    <label for="econ_concepts_elasticity_taxation">Elasticity & taxation</label>
+    <input type="checkbox" id="econ_concepts_competition_monopolies" name="econ_concepts" value="competition_monopolies">
+    <label for="econ_concepts_competition_monopolies">Competition & monopolies</label>
+    <input type="checkbox" id="econ_concepts_macroeconomics_unemployment" name="econ_concepts" value="macroeconomics_unemployment">
+    <label for="econ_concepts_macroeconomics_unemployment">Macroeconomics & unemployment</label>
+    <input type="checkbox" id="econ_concepts_economic_growth" name="econ_concepts" value="economic_growth">
+    <label for="econ_concepts_economic_growth">Economic growth</label>
+    <input type="checkbox" id="econ_concepts_fiscal_monetary" name="econ_concepts" value="fiscal_monetary">
+    <label for="econ_concepts_fiscal_monetary">Fiscal & monetary policy</label>
+    <input type="checkbox" id="econ_concepts_banking" name="econ_concepts" value="banking">
+    <label for="econ_concepts_banking">Banking systems & financial institutions</label>
+  </checkboxes-group>
 
   <!-- ====================================================== -->
 
-  <div>
-    <p>What type of economic context would you find most helpful in
+  <p>What type of economic context would you find most helpful in
     understanding 19th-century literature? Select at least 2:</p>
-    <div class="checkboxes checkboxes-required"
-         data-required="true" data-min="2"
-         style="grid-template-columns: repeat(1, 1.5em 1fr);">
-      <input type="checkbox" id="econ_contex_key_events" name="econ_context" value="key_events">
-      <label for="econ_contex_key_events">Key economic events (e.g., industrial revolution)</label>
-      <input type="checkbox" id="econ_contex_daily_life" name="econ_context" value="daily_life">
-      <label for="econ_contex_daily_life">Daily economic life of different social classes (e.g., workers, aristocracy)</label>
-      <input type="checkbox" id="econ_contex_policies" name="econ_context" value="policies">
-      <label for="econ_contex_policies">Economic policies and their effects on society</label>
-      <input type="checkbox" id="econ_contex_trade" name="econ_context" value="trade">
-      <label for="econ_contex_trade">Trade and global economics</label>
-      <input type="checkbox" id="econ_contex_banking" name="econ_context" value="banking">
-      <label for="econ_contex_banking">Banking and credit systems</label>
-    </div>
-  </div>
+  <checkboxes-group class="checkboxes"
+       required min="2"
+       style="grid-template-columns: repeat(1, 1.5em 1fr);">
+    <input type="checkbox" id="econ_contex_key_events" name="econ_context" value="key_events">
+    <label for="econ_contex_key_events">Key economic events (e.g., industrial revolution)</label>
+    <input type="checkbox" id="econ_contex_daily_life" name="econ_context" value="daily_life">
+    <label for="econ_contex_daily_life">Daily economic life of different social classes (e.g., workers, aristocracy)</label>
+    <input type="checkbox" id="econ_contex_policies" name="econ_context" value="policies">
+    <label for="econ_contex_policies">Economic policies and their effects on society</label>
+    <input type="checkbox" id="econ_contex_trade" name="econ_context" value="trade">
+    <label for="econ_contex_trade">Trade and global economics</label>
+    <input type="checkbox" id="econ_contex_banking" name="econ_context" value="banking">
+    <label for="econ_contex_banking">Banking and credit systems</label>
+  </checkboxes-group>
 
   <!-- ====================================================== -->
 
-  <div>
-    <p>When having a choice:</p>
-    <div class="checkboxes">
-      <input type="radio" id="dev_kindle" name="dev" value="kindle" required>
-      <label for="dev_kindle">Kindle</label>
-      <input type="radio" id="dev_deadtree" name="dev" value="deadtree">
-      <label for="dev_deadtree">Dead tree</label>
-      <input type="radio" id="dev_audio" name="dev" value="audio">
-      <label for="dev_audio">Audio</label>
-    </div>
+  <p>When having a choice:</p>
+  <div class="checkboxes">
+    <input type="radio" id="dev_kindle" name="dev" value="kindle" required>
+    <label for="dev_kindle">Kindle</label>
+    <input type="radio" id="dev_deadtree" name="dev" value="deadtree">
+    <label for="dev_deadtree">Dead tree</label>
+    <input type="radio" id="dev_audio" name="dev" value="audio">
+    <label for="dev_audio">Audio</label>
   </div>
 
   <!-- ====================================================== -->

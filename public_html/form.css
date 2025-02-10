@@ -6,9 +6,7 @@
 }
 
 input:user-invalid { border: 2px solid red; }
-
-/* array of checkboxes */
-.invalid { outline: 2px solid red; }
+checkboxes-group:state(out-of-range) { outline: 2px solid red; }
 
 .cols-fr1fr3 {
   display: grid;

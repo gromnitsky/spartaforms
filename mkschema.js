@@ -81,9 +81,9 @@ class ECheckboxes {
         this.parent = $(this.nodes[0]).parent()
     }
 
-    get required() { return this.parent.attr('data-required') }
+    get required() { return this.parent.attr('required') }
 
-    get minItems() { return parseInt(this.parent.attr('data-min')) || 1 }
+    get minItems() { return parseInt(this.parent.attr('min')) || 1 }
 
     toJSON() {
         let arr = {
@@ -157,9 +157,9 @@ let ranges = nodes.filter( v => {
     return v.name === 'input' && $(v).attr('type') === 'range'
 }).map( v => new EInteger(v))
 
-/* <spartaforms-slider> */
-let spartaforms_sliders = nodes.filter( v => {
-    return v.name === 'spartaforms-slider'
+/* <v-slider> */
+let v_sliders = nodes.filter( v => {
+    return v.name === 'v-slider'
 }).map( v => new EInteger(v))
 
 /* <textarea> */
@@ -170,7 +170,7 @@ let textareas = nodes.filter( v => v.name === 'textarea')
 let selects = nodes.filter( v => v.name === 'select')
     .map( v => new ESelect(v))
 
-texts.concat(numbers, ranges, spartaforms_sliders, textareas, selects)
+texts.concat(numbers, ranges, v_sliders, textareas, selects)
     .forEach( v => {
         schema.properties[v.name] = v.toJSON()
         if (v.required) schema.required.push(v.name)

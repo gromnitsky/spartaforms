@@ -1,36 +1,5 @@
-class CheckboxesRequired {
-    constructor(container) {
-        this.container = container
-        this.min = parseInt(container.dataset.min) || 1
-        this.inputs = [...container.querySelectorAll('input')]
-        let click = node => node.onclick = () => {
-            return this.invalid_state(this.valid() ? 'remove' : 'add')
-        }
-        this.inputs.forEach(click)
-    }
-
-    invalid_state(operation) { this.container.classList[operation]('invalid') }
-
-    valid() {
-        return this.inputs.reduce( (acc, node) => {
-            return acc + (node.checked ? 1 : 0)
-        }, 0) >= this.min
-    }
-}
-
-let checkboxes_required = [...document.querySelectorAll('.checkboxes-required')]
-    .map( v => new CheckboxesRequired(v))
-
 function submit() {
     save_user_input(this)
-
-    for (let checkboxes of checkboxes_required) {
-        if (!checkboxes.valid()) {
-            alert('Some checkboxes are unset.')
-            checkboxes.invalid_state('add')
-            return false
-        }
-    }
 }
 
 function local_storage_key() {
@@ -60,25 +29,26 @@ function load_user_input(form, input) {
     }).filter( ([_, v]) => Boolean(v)).forEach( ([key, elements]) => {
         if (Array.isArray(elements)) { // a set of <input>
             elements.forEach( node => {
-                if (Array.isArray(input[key])) { // checkboxes
+                if (Array.isArray(input[key])) {
                     for (let v of input[key]) {
-                        if (node.value === v) node.checked = true
+                        if (node.value === v) node.click()
                     }
-                } else { // radios
-                    if (node.value === input[key]) node.checked = true
+                } else {
+                    if (node.value === input[key]) node.click()
                 }
             })
 
         } else {
-            if (elements.tagName === 'TEXTAREA') {
-                elements.value = input[key]
-            } else if (elements.tagName === 'SELECT') {
-                elements.querySelectorAll('option').forEach( v => {
+            let node = elements
+            if (node.tagName === 'TEXTAREA') {
+                node.value = input[key]
+            } else if (node.tagName === 'SELECT') {
+                node.querySelectorAll('option').forEach( v => {
                     if (v.value === input[key]) v.selected = true
                 })
             } else {
-                // updates custom elements as well
-                elements.setAttribute('value', input[key])
+                // updates custom node as well
+                node.value = input[key]
             }
         }
 
@@ -107,12 +77,6 @@ function local_storage() {
     return JSON.parse(localStorage.getItem(key))
 }
 
-
-let url = new URL(window.location.href)
-if (url.searchParams.get('debug') === '1') {
-    document.querySelectorAll('form *[required]')
-        .forEach( node => node.required = false)
-}
 
 // try to load previous results when running fron db/ directory
 let results
