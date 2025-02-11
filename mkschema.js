@@ -81,9 +81,29 @@ class ECheckboxes {
         this.parent = $(this.nodes[0]).parent()
     }
 
-    get required() { return this.parent.attr('required') }
+    group_parent() {
+        return $(this.nodes[0]).parents('checkboxes-group')
+    }
 
-    get minItems() { return parseInt(this.parent.attr('min')) || 1 }
+    get required() {
+        let checkboxes_group = this.group_parent()
+        if (checkboxes_group && checkboxes_group.attr('required') != null)
+            return true
+        // a sole checkbox of "I agree" style
+        return this.nodes.some( v => $(v).attr('required') != null)
+    }
+
+    get minItems() {
+        let checkboxes_group = this.group_parent()
+        if (!checkboxes_group) return 1
+        return parseInt(checkboxes_group.attr('min')) || 1
+    }
+
+    get maxItems() {
+        let checkboxes_group = this.group_parent()
+        if (!checkboxes_group) return null
+        return parseInt(checkboxes_group.attr('max'))
+    }
 
     toJSON() {
         let arr = {
@@ -93,7 +113,7 @@ class ECheckboxes {
                 enum: this.enums
             },
             minItems: this.minItems,
-            maxItems: this.enums.length,
+            maxItems: isNaN(this.maxItems) ? this.enums.length : this.maxItems,
             uniqueItems: true
         }
 
